@@ -1,5 +1,7 @@
 # ======================================================================
-# Function to calculate window size
+"""
+Function to calculate window size
+"""
 # ======================================================================
 
 function WindowSize(alpha, delta, epsilon, gamma)
