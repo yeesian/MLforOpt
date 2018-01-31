@@ -51,7 +51,11 @@ function WindowSize(delta, epsilon, gamma, M)
 
     M_min = 1 + (2*gamma/(delta*(gamma-1)))^(1/(gamma-1));
 
-    W = 2*gamma/epsilon^2*max(log(M_min), log(M));
+    W = ceil(2*gamma/epsilon^2*max(log(M_min), log(M)));
+
+    #W = ceil(W/2)
+
+    W = Int(W)
 
     return W
 end
@@ -95,33 +99,32 @@ gamma   - constant > 1
 Outputs:\\
 """
 
-function RunLearningAlgorithm(alpha, delta, epsilon, gamma)
+function RunLearningAlgorithm(alpha, delta, epsilon, gamma, name)
+
+    # Load data from JLD file
+    scenarios = JLD.load(string(name), "scenarios")
 
     # Evaluate stopping criterion
     R_max = StoppingCriterion(alpha, delta)
 
-    for m=1:maxM
+    for m=1:length(scenarios.whichbasis[:,1])
         # i) Calculate window size for checking
-        W = WindowSize(delta, epsilon, gamma, M)
+        W = WindowSize(delta, epsilon, gamma, m)
 
         # ii) Find observed bases for s=1,...,m
+        uniqueM = unique(scenarios.whichbasis[1:m,:],1)
+        K_M = size(uniqueM,1)
 
         # iii) Find rate of discovery for s=m+1,...,m+W
+        observedW = scenarios.whichbasis[m+1:m+W,:]
+        oldBasis = [sum([observedW[k,:]==uniqueM[j,:] for j in 1:K_M]) for k in 1:size(observedW,1)]
+
+        R_MW = (W - sum(oldBasis))/W
 
         # iv) decide whether to terminate
         if R_MW <=R_max
-            #end loop
+            return m, W, R_MW, K_M
         end
     end
-
-    return M, W, R_MW, K_M
-end
-# ======================================================================
-
-
-
-    R_WM = alpha - epsilon
-
-    return R_WM
 end
 # ======================================================================
