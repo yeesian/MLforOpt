@@ -5,7 +5,8 @@ using OPFRecourse, JLD, Gurobi
 
 
 # Running over OPF Benchmark Cases
-for f in [
+#for f in [
+    [
         "case3_lmbd",
         "case5_pjm",
         "case14_ieee",
@@ -26,17 +27,19 @@ for f in [
          "case1888_rte",
          "case1951_rte",
          # "case2383wp_k" # (infeasible)
-         "case2736sp_k",
-         "case2737sop_k",
-         "case2746wop_k",
-         "case2746wp_k",
-         "case2848_rte",
-         "case2868_rte",
-         "case2869_pegase",
-         "case2869_pegase",
-         "case3012wp_k",
-         "case3120sp_k",
-         "case3375wp_k",
+         #"case2736sp_k",
+         "case2737sop_k", #seems fine
+         #"case2746wop_k", # (infeasible)
+         #"case2746wp_k", # (infeasible)
+         "case2848_rte", #seems fine
+         "case2868_rte", #seems fine
+         "case2869_pegase", #seems fine (but seems to take longer)
+         "case2869_pegase", #seems fine (but also longer)
+         #"case3012wp_k", # (infeasible)
+         #"case3120sp_k", # (infeasible)
+         #"case3375wp_k", # (singluar)
+         ]
+for f in [
          "case6468_rte",
          "case6495_rte",
          "case6515_rte",
