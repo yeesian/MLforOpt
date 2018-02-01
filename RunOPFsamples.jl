@@ -1,5 +1,6 @@
 
-using OPFRecourse, JLD, Clp
+using OPFRecourse, JLD, Gurobi
+#using OPFRecourse, JLD, Clp
 
 
 
@@ -45,10 +46,10 @@ for f in [
     print("Working on $f: ")
     data_file = string("pglib-opf/pglib_opf_", f, ".m")
     #data_file = string(Pkg.dir(),"/OPFRecourse/test/data/pglib-opf/pglib_opf_", f, ".m")
-    for i in 1:5
+    for i=3 #in 1:5
         @time ref = OPFRecourse.NetworkReference(data_file, σscaling=0.01*i);
 
-        m = OPFRecourse.SingleScenarioOPF(ref, Clp.ClpSolver());
+        m = OPFRecourse.SingleScenarioOPF(ref, Gurobi.GurobiSolver());
         #m = OPFRecourse.SingleScenarioOPF(ref, Clp.ClpSolver());
         srand(1234)
         scenarios = OPFRecourse.OPFScenarios(ref, m, nsamples = 10);
