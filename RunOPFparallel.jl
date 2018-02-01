@@ -16,7 +16,7 @@ for i=3 #in 1:5
     m = OPFRecourse.SingleScenarioOPF(ref, Gurobi.GurobiSolver());
     #m = OPFRecourse.SingleScenarioOPF(ref, Clp.ClpSolver());
     srand(1234)
-    scenarios = OPFRecourse.OPFScenarios(ref, m, nsamples = 10);
+    scenarios = OPFRecourse.OPFScenarios(ref, m, nsamples = 50_000);
     JLD.save("results/$(f)$(i).jld", "scenarios", scenarios)
     print("$i ")
 end
