@@ -1,5 +1,5 @@
 #!/bin/bash
-#sbatch --job-name=case57 --partition=scaling --output=case57.out ./run_tests line_real_power 18.0 0.2
+
 
 filename='case3_lmbd'
 

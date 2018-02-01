@@ -40,7 +40,7 @@ for f in [
          "case6468_rte", # seems fine (abou 1 min 30s for 10 samples)
          "case6495_rte", # seems fine (abou 1 min 37s for 10 samples)
          "case6515_rte", # seems fine (abou 1 min 40s for 10 samples)
-         "case9241_pegase",
+         #"case9241_pegase", # infeasible
          "case13659_pegase"
     ]
     print("Working on $f: ")
