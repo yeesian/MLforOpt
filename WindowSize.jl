@@ -107,7 +107,10 @@ function RunLearningAlgorithm(alpha, delta, epsilon, gamma, name)
     # Evaluate stopping criterion
     R_max = StoppingCriterion(alpha, delta)
 
-    for m=1:length(scenarios.whichbasis[:,1])
+    #Find maximum window length (to avoid going too far)
+    W_max = WindowSize(delta, epsilon, gamma, length(scenarios.whichbasis[:,1]))
+
+    for m=1:length(scenarios.whichbasis[:,1])-W_max
         # i) Calculate window size for checking
         W = WindowSize(delta, epsilon, gamma, m)
 
@@ -125,6 +128,16 @@ function RunLearningAlgorithm(alpha, delta, epsilon, gamma, name)
         if R_MW <=R_max
             return m, W, R_MW, K_M
         end
+
+        if m==1000*ceil(m/1000)
+            println(["M=", m])
+        end
+
     end
+
+    println()
+    print("Not enough samples available, algorithm did not terminate!")
+    return m, W, R_MW, K_M
+
 end
 # ======================================================================
