@@ -75,9 +75,9 @@ R_MW - rate of discovery where algorithm terminates
 
 function StoppingCriterion(alpha, delta)
 
-    R_WM = alpha - epsilon
+    R_MW = alpha - epsilon
 
-    return R_WM
+    return R_MW
 end
 # ======================================================================
 
@@ -97,10 +97,7 @@ gamma   - constant > 1
 Outputs:\\
 """
 
-function RunLearningAlgorithm(alpha, delta, epsilon, gamma, name)
-
-    # Load data from JLD file
-    scenarios = JLD.load(string(name), "scenarios")
+function RunLearningAlgorithm(alpha, delta, epsilon, gamma, scenarios, testsize)
 
     # Evaluate stopping criterion
     R_max = StoppingCriterion(alpha, delta)
@@ -108,7 +105,7 @@ function RunLearningAlgorithm(alpha, delta, epsilon, gamma, name)
     #Find maximum window length (to avoid going too far)
     W_max = WindowSize(delta, epsilon, gamma, length(scenarios.whichbasis[:,1]))
 
-    offset  = 10_000
+    offset = 0
 
     for m=1:length(scenarios.whichbasis[:,1])-W_max
         # i) Calculate window size for checking
@@ -120,13 +117,22 @@ function RunLearningAlgorithm(alpha, delta, epsilon, gamma, name)
 
         # iii) Find rate of discovery for s=m+1,...,m+W
         observedW = scenarios.whichbasis[m+1+offset:m+W+offset,:]
-        oldBasis = [sum([observedW[k,:]==uniqueM[j,:] for j in 1:K_M]) for k in 1:size(observedW,1)]
+        R_MW = RateOfDiscovery(uniqueM, observedW, W)
 
-        R_MW = (W - sum(oldBasis))/W
+        #oldBasis = [sum([observedW[k,:]==uniqueM[j,:] for j in 1:K_M]) for k in 1:size(observedW,1)]
+
+        #R_MW = (W - sum(oldBasis))/W
 
         # iv) decide whether to terminate
         if R_MW <=R_max
-            return m, W, R_MW, K_M
+
+            # Check out-of-sample rate of discovery
+            testsize = min(testsize, 50_000 - m - W)
+            testsize = Int(ceil(testsize))
+            observedTest = scenarios.whichbasis[end-testsize:end,:]
+            R_OS = RateOfDiscovery(uniqueM, observedTest, testsize)
+
+            return m, W, R_MW, K_M, R_OS, testsize
         end
 
         if m==1000*ceil(m/1000)
@@ -137,7 +143,31 @@ function RunLearningAlgorithm(alpha, delta, epsilon, gamma, name)
 
     println()
     print("Not enough samples available, algorithm did not terminate!")
-    return m, W, R_MW, K_M
-
+    m = 0
+    W = 0
+    R_MW = 0
+    K_M = 0
+    R_OS = 0
+    testsize = 0
+    return m, W, R_MW, K_M, R_OS, testsize
 end
 # ======================================================================
+
+"""
+Determine the rate of discovery of new bases, given a set of already observed
+bases and a set of new scenarios.whichbasis
+
+Inputs:\\
+uniqueM     unique bases already undiscovered\\
+observedB   observed scenarios\\
+testsize    length of the test window
+
+Outputs:\\
+RoD         Rate of Discovery of new bases in the test window
+
+"""
+function RateOfDiscovery(uniqueM, observedB, testsize)
+        oldBasis = [sum([observedB[k,:]==uniqueM[j,:] for j in 1:size(uniqueM,1)]) for k in 1:size(observedB,1)]
+        RoD = (testsize - sum(oldBasis))/testsize
+    return RoD
+end
