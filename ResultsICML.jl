@@ -6,8 +6,8 @@ include("WindowSize.jl")
 
 
 # Set parameters
-alpha = 0.1
-epsilon = 0.05
+alpha = 0.05
+epsilon = 0.04
 delta = 0.01
 gamma = 2
 

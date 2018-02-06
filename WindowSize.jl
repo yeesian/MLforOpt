@@ -19,7 +19,7 @@ function MinWindowSize(delta, epsilon, gamma)
         error("Gamma must be larger than 1!")
     end
 
-    M_min = 1 + (2*gamma/(delta*(gamma-1)))^(1/(gamma-1));
+    M_min = 1 + (gamma/(delta*(gamma-1)))^(1/(gamma-1));
 
     W_min = 2*gamma/epsilon^2*log(M_min);
 
@@ -49,11 +49,9 @@ function WindowSize(delta, epsilon, gamma, M)
         error("Gamma must be larger than 1!")
     end
 
-    M_min = 1 + (2*gamma/(delta*(gamma-1)))^(1/(gamma-1));
+    M_min = 1 + (gamma/(delta*(gamma-1)))^(1/(gamma-1));
 
     W = ceil(2*gamma/epsilon^2*max(log(M_min), log(M)));
-
-    #W = ceil(W/2)
 
     W = Int(W)
 
@@ -110,16 +108,18 @@ function RunLearningAlgorithm(alpha, delta, epsilon, gamma, name)
     #Find maximum window length (to avoid going too far)
     W_max = WindowSize(delta, epsilon, gamma, length(scenarios.whichbasis[:,1]))
 
+    offset  = 10_000
+
     for m=1:length(scenarios.whichbasis[:,1])-W_max
         # i) Calculate window size for checking
         W = WindowSize(delta, epsilon, gamma, m)
 
         # ii) Find observed bases for s=1,...,m
-        uniqueM = unique(scenarios.whichbasis[1:m,:],1)
+        uniqueM = unique(scenarios.whichbasis[1+offset:m+offset,:],1)
         K_M = size(uniqueM,1)
 
         # iii) Find rate of discovery for s=m+1,...,m+W
-        observedW = scenarios.whichbasis[m+1:m+W,:]
+        observedW = scenarios.whichbasis[m+1+offset:m+W+offset,:]
         oldBasis = [sum([observedW[k,:]==uniqueM[j,:] for j in 1:K_M]) for k in 1:size(observedW,1)]
 
         R_MW = (W - sum(oldBasis))/W
