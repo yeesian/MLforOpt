@@ -8,7 +8,7 @@ include("WindowSize.jl")
 # Set parameters
 alpha = 0.05
 epsilon = 0.04
-delta = 0.001
+delta = 0.01
 gamma = 2
 
 # Out of sample test size
