@@ -14,4 +14,4 @@ done
 echo "failed to connect to server"
 
 
-srun julia RunOPFparallel.jl $1
+srun julia RunOPFparallel_uniform.jl $1
