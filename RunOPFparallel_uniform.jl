@@ -17,7 +17,7 @@ for i=3 #in 1:5
 
     # Generate new uncertainties based on uniform distribution
     srand(1234)
-    nsamples = 10
+    nsamples = 50_000
     ωsamples = zeros(ref.nbus, nsamples)
     nonzeroindices = (1:length(ref.stdω))[ref.stdω .> 1e-5]
     for b in nonzeroindices
@@ -26,14 +26,6 @@ for i=3 #in 1:5
     # solve OPF for uniform distribution realizations
     scenarios = OPFRecourse.OPFScenarios(ref, m, ωsamples);
     JLD.save("results_uniform/$(f)$(i).jld", "scenarios", scenarios)
-    print("$i ")
-
-
-    m = OPFRecourse.SingleScenarioOPF(ref, Gurobi.GurobiSolver());
-    #m = OPFRecourse.SingleScenarioOPF(ref, Clp.ClpSolver());
-    srand(1234)
-    scenarios = OPFRecourse.OPFScenarios(ref, m, nsamples = 50_000);
-    JLD.save("results/$(f)$(i).jld", "scenarios", scenarios)
     print("$i ")
 end
 println()
