@@ -92,5 +92,5 @@ for (k,f) in enumerate([
 
 end
 
-JLD.save("results_uniform/summary_uniform.jld", "M", M, "K_M", K_M, "R_MW", R_MW, , "W", W)
+JLD.save("results_uniform/summary_uniform_delta0p01.jld", "M", M, "K_M", K_M, "R_MW", R_MW, , "W", W)
 #JLD.save("results_uniform/summary_gaussian.jld", "M", M, "K_M", K_M, "R_MW", R_MW, , "W", W)
