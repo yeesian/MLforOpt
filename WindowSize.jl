@@ -97,7 +97,7 @@ gamma   - constant > 1
 Outputs:\\
 """
 
-function RunLearningAlgorithm(alpha, delta, epsilon, gamma, scenarios, testsize)
+function RunLearningAlgorithm(alpha, delta, epsilon, gamma, scenarios, testsize, Mmin)
 
     # Evaluate stopping criterion
     R_max = StoppingCriterion(alpha, delta)
@@ -107,7 +107,7 @@ function RunLearningAlgorithm(alpha, delta, epsilon, gamma, scenarios, testsize)
 
     offset = 0
 
-    for m=1:length(scenarios.whichbasis[:,1])-W_max
+    for m=Mmin:length(scenarios.whichbasis[:,1])-W_max
         # i) Calculate window size for checking
         W = WindowSize(delta, epsilon, gamma, m)
 

@@ -27,25 +27,25 @@ W_test = Vector{Float64}(15)
 
 # Running over OPF Benchmark Cases
 for (k,f) in enumerate([
-#        "case3_lmbd",
-#        "case5_pjm",
-#        "case14_ieee",
-#        "case24_ieee_rts",
+        "case3_lmbd",
+        "case5_pjm",
+        "case14_ieee",
+        "case24_ieee_rts",
         #"case30_as",
         #"case30_fsr",
-#        "case30_ieee",
-#        "case39_epri",
-#        "case57_ieee",
-#        "case73_ieee_rts", # will not terminate for uniform
+        "case30_ieee",
+        "case39_epri",
+        "case57_ieee",
+        "case73_ieee_rts", # will not terminate for uniform
         # "case89_pegase", # (infeasible)
-#        "case118_ieee",
-#        "case162_ieee_dtc",
-#        "case200_pserc", # uniform = 6000-7000 samples
-#        "case240_pserc", # will not terminate for uniform
-#        "case300_ieee", # uniform = 9000-10000 smples
+        "case118_ieee",
+        "case162_ieee_dtc",
+        "case200_pserc", # uniform = 6000-7000 samples
+        "case240_pserc", # will not terminate for uniform
+        "case300_ieee", # uniform = 9000-10000 smples
         # "case1354_pegase", # (infeasible)
-#         "case1888_rte", # less than 100 samples
-         "case1951_rte"
+         "case1888_rte", # less than 100 samples
+         "case1951_rte" # less than 100 samples
 ])
          # "case2383wp_k" # (infeasible)
          #"case2736sp_k",
@@ -74,8 +74,23 @@ for (k,f) in enumerate([
 
     scenarios = JLD.load(data_file, "scenarios")
 
+    Mmin = 1
+
+    if f=="case73_ieee_rts"
+        Mmin = 23000
+    end
+    if f=="case200_pserc"
+        Mmin = 6000
+    end
+    if f=="case240_pserc"
+        Mmin = 23000
+    end
+    if f=="case300_ieee"
+        Mmin = 9000
+    end
+
     # Run the learning algorithm
-    (M[k], W[k], R_MW[k], K_M[k], R_OS[k], W_test[k]) = RunLearningAlgorithm(alpha, delta, epsilon, gamma, scenarios, testsize)
+    (M[k], W[k], R_MW[k], K_M[k], R_OS[k], W_test[k]) = RunLearningAlgorithm(alpha, delta, epsilon, gamma, scenarios, testsize, Mmin)
 
     # Compute probability of each basis
     #basisM.whichscenario = scenarios.whichscenario[1+offset:m+offset,:]
@@ -92,5 +107,5 @@ for (k,f) in enumerate([
 
 end
 
-JLD.save("summary_uniform73.jld", "M", M, "K_M", K_M, "R_MW", R_MW, "W", W, "R_OS", R_OS, "W_test", W_test)
+JLD.save("summary_uniform.jld", "M", M, "K_M", K_M, "R_MW", R_MW, "W", W, "R_OS", R_OS, "W_test", W_test)
 #JLD.save("results_uniform/summary_gaussian.jld", "M", M, "K_M", K_M, "R_MW", R_MW, "W", W)
