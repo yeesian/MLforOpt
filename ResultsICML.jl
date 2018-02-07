@@ -69,8 +69,8 @@ for (k,f) in enumerate([
     # Clumsy indexing....
 
     print("Working on $f: ")
-    data_file = string("darwin/results_gaussian/", f, "3.jld")
-    #data_file = string("darwin/results_uniform/", f, "3.jld")
+    #data_file = string("darwin/results_gaussian/", f, "3.jld")
+    data_file = string("darwin/results_uniform/", f, "3.jld")
 
     scenarios = JLD.load(data_file, "scenarios")
 
@@ -92,5 +92,5 @@ for (k,f) in enumerate([
 
 end
 
-#JLD.save("results_uniform/summary_uniform.jld", "M", M, "K_M", K_M, "R_MW", R_MW, , "W", W)
-JLD.save("results_uniform/summary_gaussian.jld", "M", M, "K_M", K_M, "R_MW", R_MW, , "W", W)
+JLD.save("results_uniform/summary_uniform.jld", "M", M, "K_M", K_M, "R_MW", R_MW, , "W", W)
+#JLD.save("results_uniform/summary_gaussian.jld", "M", M, "K_M", K_M, "R_MW", R_MW, , "W", W)
