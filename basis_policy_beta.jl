@@ -34,10 +34,10 @@ function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
     idx_lower = idx[ind_lower-col_ctr]
     idx_upper = idx[ind_upper-col_ctr]
     for i in idx_lower
-        JuMP.fix(vm[i],ref[:bus][i]["vmin"])
+        @constraint(model, vm[i] == ref[:bus][i]["vmin"])
     end
     for i in idx_upper
-        JuMP.fix(vm[i],ref[:bus][i]["vmax"])
+        @constraint(model, vm[i] == ref[:bus][i]["vmax"])
     end
     col_ctr += length(ref[:bus])
 
@@ -49,10 +49,10 @@ function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
     idx_lower = idx[ind_lower-col_ctr]
     idx_upper = idx[ind_upper-col_ctr]
     for i in idx_lower
-        JuMP.fix(pg[i],ref[:gen][i]["pmin"])
+        @constraint(model, pg[i] == ref[:gen][i]["pmin"])
     end
     for i in idx_upper
-        JuMP.fix(pg[i],ref[:gen][i]["pmax"])
+        @constraint(model, pg[i] == ref[:gen][i]["pmax"])
     end
     col_ctr += length(ref[:gen])
 
@@ -64,10 +64,10 @@ function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
     idx_lower = idx[ind_lower-col_ctr]
     idx_upper = idx[ind_upper-col_ctr]
     for i in idx_lower
-        JuMP.fix(qg[i],ref[:gen][i]["qmin"])
+        @constraint(model, qg[i] == ref[:gen][i]["qmin"])
     end
     for i in idx_upper
-        JuMP.fix(qg[i],ref[:gen][i]["qmax"])
+        @constraint(model, qg[i] == ref[:gen][i]["qmax"])
     end
     col_ctr += length(ref[:gen])
 

@@ -14,8 +14,7 @@ function find_active_set(filename,tol,NLsolver)
     jm, const_refs, var_refs = post_ac_opf_withref(network_data,m)
     status = solve(m)
 
-    all_const_refs = [const_refs["kcl_p"];const_refs["kcl_q"];const_refs["p_fr_ref"];
-        const_refs["q_fr_ref"];const_refs["p_to_ref"];const_refs["q_to_ref"];const_refs["sapp_fr_ref"];const_refs["sapp_to_ref"]]
+    all_const_refs = [const_refs["sapp_fr_ref"]; const_refs["sapp_to_ref"]]
     all_var_refs = [var_refs["pg"][:];var_refs["qg"][:]]
 
     row_duals = JuMP.getdual(all_const_refs)    # find dual of the constraints
@@ -64,24 +63,25 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
         sum(dcline["cost"][1]*p_dc[from_idx[i]]^2 + dcline["cost"][2]*p_dc[from_idx[i]] + dcline["cost"][3] for (i,dcline) in ref[:dcline])
     )
 
+    # @constraintref slack_ref
     for (i,bus) in ref[:ref_buses]
         # Refrence Bus
-        @constraint(model, va[i] == 0)
+        slack_ref = @constraint(model, va[i] == 0)
     end
 
     # constraint reference arrays for bus constraints
-    @constraintref kcl_p[1:length(ref[:bus])]
-    @constraintref kcl_q[1:length(ref[:bus])]
+    # @constraintref kcl_p[1:length(ref[:bus])]
+    # @constraintref kcl_q[1:length(ref[:bus])]
     bus_ctr = 0
     for (i,bus) in ref[:bus]
         bus_ctr += 1
         # Bus KCL
-        kcl_p[bus_ctr] = @NLconstraint(model,
+        @NLconstraint(model,
             sum(p[a] for a in ref[:bus_arcs][i]) +
             sum(p_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
             sum(pg[g] for g in ref[:bus_gens][i]) - bus["pd"] - bus["gs"]*vm[i]^2
         )
-        kcl_q[bus_ctr] = @NLconstraint(model,
+        @NLconstraint(model,
             sum(q[a] for a in ref[:bus_arcs][i]) +
             sum(q_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
             sum(qg[g] for g in ref[:bus_gens][i]) - bus["qd"] + bus["bs"]*vm[i]^2
@@ -89,10 +89,8 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
     end
 
     # constraint reference arrays for branch constraints
-    @constraintref p_fr_ref[1:length(ref[:branch])]
-    @constraintref q_fr_ref[1:length(ref[:branch])]
-    @constraintref p_to_ref[1:length(ref[:branch])]
-    @constraintref q_to_ref[1:length(ref[:branch])]
+    # @constraintref ang_diff_max_ref[1:length(ref[:branch])
+    # @constraintref ang_diff_min_ref[1:length(ref[:branch])
     @constraintref sapp_fr_ref[1:length(ref[:branch])]
     @constraintref sapp_to_ref[1:length(ref[:branch])]
     branch_ctr = 0
@@ -119,13 +117,14 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
         tm = branch["tap"]^2
 
         # AC Line Flow Constraints
-        p_fr_ref[branch_ctr] = @NLconstraint(model, p_fr == g/tm*vm_fr^2 + (-g*tr+b*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-b*tr-g*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
-        q_fr_ref[branch_ctr] = @NLconstraint(model, q_fr == -(b+c/2)/tm*vm_fr^2 - (-b*tr-g*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-g*tr+b*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
+        @NLconstraint(model, p_fr == g/tm*vm_fr^2 + (-g*tr+b*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-b*tr-g*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
+        @NLconstraint(model, q_fr == -(b+c/2)/tm*vm_fr^2 - (-b*tr-g*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-g*tr+b*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
 
-        p_to_ref[branch_ctr] = @NLconstraint(model, p_to == g*vm_to^2 + (-g*tr-b*ti)/tm*(vm_to*vm_fr*cos(va_to-va_fr)) + (-b*tr+g*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
-        q_to_ref[branch_ctr] = @NLconstraint(model, q_to == -(b+c/2)*vm_to^2 - (-b*tr+g*ti)/tm*(vm_to*vm_fr*cos(va_fr-va_to)) + (-g*tr-b*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
+        @NLconstraint(model, p_to == g*vm_to^2 + (-g*tr-b*ti)/tm*(vm_to*vm_fr*cos(va_to-va_fr)) + (-b*tr+g*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
+        @NLconstraint(model, q_to == -(b+c/2)*vm_to^2 - (-b*tr+g*ti)/tm*(vm_to*vm_fr*cos(va_fr-va_to)) + (-g*tr-b*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
 
         # Phase Angle Difference Limit
+
         @constraint(model, va_fr - va_to <= branch["angmax"])
         @constraint(model, va_fr - va_to >= branch["angmin"])
 
@@ -144,12 +143,6 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
 
 
     const_refs = Dict{String,Any}()
-    const_refs["kcl_p"] = kcl_p
-    const_refs["kcl_q"] = kcl_q
-    const_refs["p_fr_ref"] = p_fr_ref
-    const_refs["q_fr_ref"] = q_fr_ref
-    const_refs["p_to_ref"] = p_to_ref
-    const_refs["q_to_ref"] = q_to_ref
     const_refs["sapp_fr_ref"] = sapp_fr_ref
     const_refs["sapp_to_ref"] = sapp_to_ref
 
