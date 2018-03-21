@@ -42,8 +42,9 @@ The withref modification also returns the variable and constraint references
 """
 
 function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
+
     @assert !(data["multinetwork"])
-    ref = PMs.build_ref(data)[:nw][0]
+    ref = PowerModels.build_ref(data)[:nw][0]
 
     @variable(model, va[i in keys(ref[:bus])])
     @variable(model, ref[:bus][i]["vmin"] <= vm[i in keys(ref[:bus])] <= ref[:bus][i]["vmax"], start=1.0)
@@ -71,14 +72,16 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
     # constraint reference arrays for bus constraints
     @constraintref kcl_p[1:length(ref[:bus])]
     @constraintref kcl_q[1:length(ref[:bus])]
+    bus_ctr = 0
     for (i,bus) in ref[:bus]
+        bus_ctr += 1
         # Bus KCL
-        kcl_p[i] = @NLconstraint(model,
+        kcl_p[bus_ctr] = @NLconstraint(model,
             sum(p[a] for a in ref[:bus_arcs][i]) +
             sum(p_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
             sum(pg[g] for g in ref[:bus_gens][i]) - bus["pd"] - bus["gs"]*vm[i]^2
         )
-        kcl_q[i] = @NLconstraint(model,
+        kcl_q[bus_ctr] = @NLconstraint(model,
             sum(q[a] for a in ref[:bus_arcs][i]) +
             sum(q_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
             sum(qg[g] for g in ref[:bus_gens][i]) - bus["qd"] + bus["bs"]*vm[i]^2
@@ -92,7 +95,10 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
     @constraintref q_to_ref[1:length(ref[:branch])]
     @constraintref sapp_fr_ref[1:length(ref[:branch])]
     @constraintref sapp_to_ref[1:length(ref[:branch])]
+    branch_ctr = 0
     for (i,branch) in ref[:branch]
+        branch_ctr += 1
+
         f_idx = (i, branch["f_bus"], branch["t_bus"])
         t_idx = (i, branch["t_bus"], branch["f_bus"])
 
@@ -107,25 +113,25 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
         va_to = va[branch["t_bus"]]
 
         # Line Flow
-        g, b = PMs.calc_branch_y(branch)
-        tr, ti = PMs.calc_branch_t(branch)
+        g, b = PowerModels.calc_branch_y(branch)
+        tr, ti = PowerModels.calc_branch_t(branch)
         c = branch["br_b"]
         tm = branch["tap"]^2
 
         # AC Line Flow Constraints
-        p_fr_ref[i] = @NLconstraint(model, p_fr == g/tm*vm_fr^2 + (-g*tr+b*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-b*tr-g*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
-        q_fr_ref[i] = @NLconstraint(model, q_fr == -(b+c/2)/tm*vm_fr^2 - (-b*tr-g*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-g*tr+b*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
+        p_fr_ref[branch_ctr] = @NLconstraint(model, p_fr == g/tm*vm_fr^2 + (-g*tr+b*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-b*tr-g*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
+        q_fr_ref[branch_ctr] = @NLconstraint(model, q_fr == -(b+c/2)/tm*vm_fr^2 - (-b*tr-g*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-g*tr+b*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
 
-        p_to_ref[i] = @NLconstraint(model, p_to == g*vm_to^2 + (-g*tr-b*ti)/tm*(vm_to*vm_fr*cos(va_to-va_fr)) + (-b*tr+g*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
-        q_to_ref[i] = @NLconstraint(model, q_to == -(b+c/2)*vm_to^2 - (-b*tr+g*ti)/tm*(vm_to*vm_fr*cos(va_fr-va_to)) + (-g*tr-b*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
+        p_to_ref[branch_ctr] = @NLconstraint(model, p_to == g*vm_to^2 + (-g*tr-b*ti)/tm*(vm_to*vm_fr*cos(va_to-va_fr)) + (-b*tr+g*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
+        q_to_ref[branch_ctr] = @NLconstraint(model, q_to == -(b+c/2)*vm_to^2 - (-b*tr+g*ti)/tm*(vm_to*vm_fr*cos(va_fr-va_to)) + (-g*tr-b*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
 
         # Phase Angle Difference Limit
         @constraint(model, va_fr - va_to <= branch["angmax"])
         @constraint(model, va_fr - va_to >= branch["angmin"])
 
         # Apparent Power Limit, From and To
-        sapp_fr_ref[i] = @NLconstraint(model, p[f_idx]^2 + q[f_idx]^2 <= branch["rate_a"]^2)
-        sapp_to_ref[i] = @NLconstraint(model, p[t_idx]^2 + q[t_idx]^2 <= branch["rate_a"]^2)
+        sapp_fr_ref[branch_ctr] = @NLconstraint(model, p[f_idx]^2 + q[f_idx]^2 <= branch["rate_a"]^2)
+        sapp_to_ref[branch_ctr] = @NLconstraint(model, p[t_idx]^2 + q[t_idx]^2 <= branch["rate_a"]^2)
     end
 
     for (i,dcline) in ref[:dcline]
