@@ -116,7 +116,6 @@ function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
     end
 
 
-
     for (i,branch) in ref[:branch]
         f_idx = (i, branch["f_bus"], branch["t_bus"])
         t_idx = (i, branch["t_bus"], branch["f_bus"])

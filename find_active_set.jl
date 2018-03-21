@@ -14,10 +14,10 @@ function find_active_set(filename,tol,NLsolver)
     jm, const_refs, var_refs = post_ac_opf_withref(network_data,m)
     status = solve(m)
 
-    all_const_refs = [const_refs["sapp_fr_ref"]; const_refs["sapp_to_ref"]]
+    # all_const_refs = [const_refs["sapp_fr_ref"]; const_refs["sapp_to_ref"]]
     all_var_refs = [var_refs["pg"][:];var_refs["qg"][:]]
 
-    row_duals = JuMP.getdual(all_const_refs)    # find dual of the constraints
+    row_duals = JuMP.getdual(const_refs)    # find dual of the constraints
 
     active_rows = find(abs(row_duals).>tol)     # non-zero Lagrange multiplier
     active_cols_lower = find(abs(jm.colVal - jm.colLower).< tol)    # variables that are at lower bound
@@ -91,12 +91,12 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
     # constraint reference arrays for branch constraints
     # @constraintref ang_diff_max_ref[1:length(ref[:branch])
     # @constraintref ang_diff_min_ref[1:length(ref[:branch])
-    @constraintref sapp_fr_ref[1:length(ref[:branch])]
-    @constraintref sapp_to_ref[1:length(ref[:branch])]
-    branch_ctr = 0
+    # @constraintref sapp_fr_ref[1:length(ref[:branch])]
+    # @constraintref sapp_to_ref[1:length(ref[:branch])]
+    # branch_ctr = 0
+    @constraintref const_refs[1:2*length(ref[:branch])]
+    row_ctr = 0
     for (i,branch) in ref[:branch]
-        branch_ctr += 1
-
         f_idx = (i, branch["f_bus"], branch["t_bus"])
         t_idx = (i, branch["t_bus"], branch["f_bus"])
 
@@ -129,8 +129,10 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
         @constraint(model, va_fr - va_to >= branch["angmin"])
 
         # Apparent Power Limit, From and To
-        sapp_fr_ref[branch_ctr] = @NLconstraint(model, p[f_idx]^2 + q[f_idx]^2 <= branch["rate_a"]^2)
-        sapp_to_ref[branch_ctr] = @NLconstraint(model, p[t_idx]^2 + q[t_idx]^2 <= branch["rate_a"]^2)
+        row_ctr += 1
+        const_refs[row_ctr] = @NLconstraint(model, p[f_idx]^2 + q[f_idx]^2 <= branch["rate_a"]^2)
+        row_ctr += 1
+        const_refs[row_ctr] = @NLconstraint(model, p[t_idx]^2 + q[t_idx]^2 <= branch["rate_a"]^2)
     end
 
     for (i,dcline) in ref[:dcline]
@@ -142,9 +144,9 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
     end
 
 
-    const_refs = Dict{String,Any}()
-    const_refs["sapp_fr_ref"] = sapp_fr_ref
-    const_refs["sapp_to_ref"] = sapp_to_ref
+    # const_refs = Dict{String,Any}()
+    # const_refs["sapp_fr_ref"] = sapp_fr_ref
+    # const_refs["sapp_to_ref"] = sapp_to_ref
 
     var_refs = Dict{String,Any}()
     var_refs["pg"] = pg
