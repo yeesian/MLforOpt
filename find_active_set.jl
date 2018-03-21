@@ -14,6 +14,9 @@ function find_active_set(filename,tol,NLsolver)
     jm, const_refs, var_refs = post_ac_opf_withref(network_data,m)
     status = solve(m)
 
+    # m.solver = IpoptSolver(mu_init = 1e-6)
+    # status = solve(m)
+
     # all_const_refs = [const_refs["sapp_fr_ref"]; const_refs["sapp_to_ref"]]
     all_var_refs = [var_refs["pg"][:];var_refs["qg"][:]]
 
