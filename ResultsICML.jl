@@ -3,7 +3,7 @@
 using JLD, OPFRecourse
 
 include("WindowSize.jl")
-
+include("LearningAlgorithms.jl")
 
 # Set parameters
 alpha = 0.05
@@ -28,7 +28,7 @@ W_test = Vector{Float64}(15)
 # Running over OPF Benchmark Cases
 for (k,f) in enumerate([
 #        "case3_lmbd",
-#        "case5_pjm",
+        "case5_pjm",
 #        "case14_ieee",
 #        "case24_ieee_rts",
         #"case30_as",
@@ -45,7 +45,7 @@ for (k,f) in enumerate([
 #        "case300_ieee", # uniform = 9000-10000 smples
         # "case1354_pegase", # (infeasible)
 #         "case1888_rte", # less than 100 samples
-         "case1951_rte"
+#         "case1951_rte"
 ])
          # "case2383wp_k" # (infeasible)
          #"case2736sp_k",
@@ -74,8 +74,10 @@ for (k,f) in enumerate([
 
     scenarios = JLD.load(data_file, "scenarios")
 
+    Mmin = 1
+    
     # Run the learning algorithm
-    (M[k], W[k], R_MW[k], K_M[k], R_OS[k], W_test[k]) = RunLearningAlgorithm(alpha, delta, epsilon, gamma, scenarios, testsize)
+    (M[k], W[k], R_MW[k], K_M[k], R_OS[k], W_test[k]) = RunLearningAlgorithm(alpha, delta, epsilon, gamma, scenarios, testsize, Mmin)
 
     # Compute probability of each basis
     #basisM.whichscenario = scenarios.whichscenario[1+offset:m+offset,:]

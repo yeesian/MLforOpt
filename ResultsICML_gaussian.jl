@@ -3,6 +3,7 @@
 using JLD, OPFRecourse
 
 include("WindowSize.jl")
+include("LearningAlgorithms.jl")
 
 
 # Set parameters
