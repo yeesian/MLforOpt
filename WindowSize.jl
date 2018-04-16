@@ -117,3 +117,16 @@ function CheckFeasibility(scenarios, nsamples)
     return n_feasible, n_infeasible
 end
 # ======================================================================
+
+"""
+Out of sample test
+"""
+function OutOfSample(testsize, m, W, scenarios, uniqueM)
+    # Check out-of-sample rate of discovery
+    testsize = min(testsize, 50_000 - m - W)
+    testsize = Int(ceil(testsize))
+    observedTest = scenarios.whichbasis[end-testsize:end,:]
+    R_OS = RateOfDiscovery(uniqueM, observedTest, testsize)
+
+    return R_OS, testsize
+end 

@@ -112,6 +112,15 @@ function RunStreamingAlgorithm(alpha, delta, epsilon, gamma, scenarios, testsize
     # calculate rate of discovery
     R_MW = (W - sum(observed))/W
 
+    # Decide whether to terminate
+    if R_MW <=R_max
+        # Check out-of-sample rate of discovery
+        R_OS, testsize = OutOfSample(testsize, m, W, scenarios, uniqueM)
+
+        return m, W, R_MW, K_M, R_OS, testsize
+    end
+
+
     for m=Mmin+1:length(scenarios.whichbasis[:,1])-W_max
         # Calculate window size
         Wold = W
@@ -149,6 +158,8 @@ function RunStreamingAlgorithm(alpha, delta, epsilon, gamma, scenarios, testsize
         #observedW = scenarios.whichbasis[m+1+offset:m+W+offset,:]
         R_MW = (W - sum(observed))/W
 
+
+
         #oldBasis = [sum([observedW[k,:]==uniqueM[j,:] for j in 1:K_M]) for k in 1:size(observedW,1)]
 
         #R_MW = (W - sum(oldBasis))/W
@@ -157,10 +168,7 @@ function RunStreamingAlgorithm(alpha, delta, epsilon, gamma, scenarios, testsize
         if R_MW <=R_max
 
             # Check out-of-sample rate of discovery
-            testsize = min(testsize, 50_000 - m - W)
-            testsize = Int(ceil(testsize))
-            observedTest = scenarios.whichbasis[end-testsize:end,:]
-            R_OS = RateOfDiscovery(uniqueM, observedTest, testsize)
+            R_OS, testsize = OutOfSample(testsize, m, W, scenarios, uniqueM)
 
             return m, W, R_MW, K_M, R_OS, testsize
         end
