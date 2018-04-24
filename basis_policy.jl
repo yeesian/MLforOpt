@@ -24,9 +24,13 @@ function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
     @assert !(data["multinetwork"])
     ref = PowerModels.build_ref(data)[:nw][0]
 
+    # VARIABLES
+
+    # voltage angles
     @variable(model, va[i in keys(ref[:bus])])
     col_ctr += length(ref[:bus])
 
+    # voltage magnitudes
     @variable(model, ref[:bus][i]["vmin"] <= vm[i in keys(ref[:bus])] <= ref[:bus][i]["vmax"], start=1.0)
     ind_lower = [i for i in active_cols_lower if col_ctr+1 <= i <= col_ctr+length(ref[:bus])]
     ind_upper = [i for i in active_cols_upper if col_ctr+1 <= i <= col_ctr+length(ref[:bus])]
@@ -41,7 +45,7 @@ function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
     end
     col_ctr += length(ref[:bus])
 
-
+    # active power
     @variable(model, ref[:gen][i]["pmin"] <= pg[i in keys(ref[:gen])] <= ref[:gen][i]["pmax"])
     ind_lower = [i for i in active_cols_lower if col_ctr+1 <= i <= col_ctr+length(ref[:gen])]
     ind_upper = [i for i in active_cols_upper if col_ctr+1 <= i <= col_ctr+length(ref[:gen])]
@@ -56,7 +60,7 @@ function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
     end
     col_ctr += length(ref[:gen])
 
-
+    # reactive power
     @variable(model, ref[:gen][i]["qmin"] <= qg[i in keys(ref[:gen])] <= ref[:gen][i]["qmax"])
     ind_lower = [i for i in active_cols_lower if col_ctr+1 <= i <= col_ctr+length(ref[:gen])]
     ind_upper = [i for i in active_cols_upper if col_ctr+1 <= i <= col_ctr+length(ref[:gen])]
@@ -71,14 +75,14 @@ function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
     end
     col_ctr += length(ref[:gen])
 
-
+    # ac power flows
     @variable(model, -ref[:branch][l]["rate_a"] <= p[(l,i,j) in ref[:arcs]] <= ref[:branch][l]["rate_a"])
     col_ctr += length(ref[:branch])
     @variable(model, -ref[:branch][l]["rate_a"] <= q[(l,i,j) in ref[:arcs]] <= ref[:branch][l]["rate_a"])
     col_ctr += length(ref[:branch])
 
 
-
+    # dc power flows (on dc lines)
     @variable(model, ref[:arcs_dc_param][a]["pmin"] <= p_dc[a in ref[:arcs_dc]] <= ref[:arcs_dc_param][a]["pmax"])
     col_ctr += length(ref[:arcs_dc_param])
     @variable(model, ref[:arcs_dc_param][a]["qmin"] <= q_dc[a in ref[:arcs_dc]] <= ref[:arcs_dc_param][a]["qmax"])

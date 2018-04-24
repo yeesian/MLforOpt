@@ -28,11 +28,13 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, filename)
     # Posting model with NL parameters for omega
     #UPDATE!!!!
     network_data = PowerModels.parse_file(filename)
-    m = Model(solver = NLsolver)
+    m_init = Model(solver = NLsolver)
+    jm, const_refs, var_refs = post_ac_opf_withref_uncertainty(network_data,m_init)
 
     # Run OPF to get active sets
     for i = 1:m+W
         # 1. Generate sample
+        
         # 2. Fix NL parameters
         # 3. Get active set
         active_set[i] = find_active_set(jm, const_refs, var_refs, tol)
