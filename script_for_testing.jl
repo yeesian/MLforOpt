@@ -13,7 +13,7 @@ filename = "pglib-opf/pglib_opf_case5_pjm.m"
 
 network_data = PowerModels.parse_file(filename)
 ref = PowerModels.build_ref(network_data)[:nw][0]
-nonzeroindices = [i for (i,bus) in ref[:bus] if bus["pd"]>1e-5]
+nonzeroindices = [i for (i,loads) in ref[:bus_loads] if length(loads) > 0]
 
 m = Model(solver = NLsolver)
 
@@ -24,7 +24,7 @@ status = solve(jm)
 
 # Constructing distribution for samples
 sigma = 0.1
-load = [ref[:bus][i]["pd"] for i in nonzeroindices]
+load = [sum(ref[:load][l]["pd"] for l in ref[:bus_loads][i]) for i in nonzeroindices]
 w = Distributions.MvNormal(
     zeros(length(nonzeroindices)),
     diagm((sigma*load).^2)
@@ -55,6 +55,6 @@ end
 
 status = solve(jm)
 
-#active_set = find_active_set(jm, const_refs, var_refs, tol)
+active_set = find_active_set(jm, const_refs, var_refs, tol)
 
 km = build_basis_policy_model(filename, NLsolver, active_set)

@@ -45,8 +45,6 @@ The withref modification also returns the variable and constraint references
 """
 
 function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
-
-    @assert !(data["multinetwork"])
     ref = PowerModels.build_ref(data)[:nw][0]
 
     @variable(model, va[i in keys(ref[:bus])])
@@ -76,9 +74,7 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
     # constraint reference arrays for bus constraints
     # @constraintref kcl_p[1:length(ref[:bus])]
     # @constraintref kcl_q[1:length(ref[:bus])]
-    bus_ctr = 0
     for (i,bus) in ref[:bus]
-        bus_ctr += 1
         # Bus KCL
         @NLconstraint(model,
             sum(p[a] for a in ref[:bus_arcs][i]) +
@@ -119,15 +115,15 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
         # Line Flow
         g, b = PowerModels.calc_branch_y(branch)
         tr, ti = PowerModels.calc_branch_t(branch)
-        c = branch["br_b"]
+        c = branch["b_fr"]
         tm = branch["tap"]^2
 
         # AC Line Flow Constraints
         @NLconstraint(model, p_fr == g/tm*vm_fr^2 + (-g*tr+b*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-b*tr-g*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
-        @NLconstraint(model, q_fr == -(b+c/2)/tm*vm_fr^2 - (-b*tr-g*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-g*tr+b*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
+        @NLconstraint(model, q_fr == -(b+c)/tm*vm_fr^2 - (-b*tr-g*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-g*tr+b*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
 
         @NLconstraint(model, p_to == g*vm_to^2 + (-g*tr-b*ti)/tm*(vm_to*vm_fr*cos(va_to-va_fr)) + (-b*tr+g*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
-        @NLconstraint(model, q_to == -(b+c/2)*vm_to^2 - (-b*tr+g*ti)/tm*(vm_to*vm_fr*cos(va_fr-va_to)) + (-g*tr-b*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
+        @NLconstraint(model, q_to == -(b+c)*vm_to^2 - (-b*tr+g*ti)/tm*(vm_to*vm_fr*cos(va_fr-va_to)) + (-g*tr-b*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
 
         # Phase Angle Difference Limit
 
@@ -176,11 +172,8 @@ The withref modification also returns the variable and constraint references
 """
 
 function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
-
-    @assert !(data["multinetwork"])
     ref = PowerModels.build_ref(data)[:nw][0]
-    nonzeroindices = [i for (i,bus) in ref[:bus] if bus["pd"]>1e-5]
-    #nonzeroindices = (1:length(ref[:bus]))[[bus["pd"] for bus in values(ref[:bus])].>1e-5]
+    nonzeroindices = [i for (i,loads) in ref[:bus_loads] if length(loads) > 0]
 
     @variable(model, va[i in keys(ref[:bus])])
     @variable(model, ref[:bus][i]["vmin"] <= vm[i in keys(ref[:bus])] <= ref[:bus][i]["vmax"], start=1.0)
@@ -195,11 +188,7 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
     @variable(model, ref[:arcs_dc_param][a]["qmin"] <= q_dc[a in ref[:arcs_dc]] <= ref[:arcs_dc_param][a]["qmax"])
 
 
-    #@NLparameter(model, u == 0)
-    #@NLparameter(model, u[i=1:length(ref[:bus]) == 0)
-    #@NLparameter(model, u[i in keys(ref[:bus])] == 0)
     @NLparameter(model, u[i in nonzeroindices] == 0)
-    #print(getvalue(u))
 
 
     from_idx = Dict(arc[1] => arc for arc in ref[:arcs_from_dc])
@@ -210,18 +199,24 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
 
     # @constraintref slack_ref
     for (i,bus) in ref[:ref_buses]
-        # Refrence Bus
+        # Reference Bus
         slack_ref = @constraint(model, va[i] == 0)
     end
 
     # constraint reference arrays for bus constraints
     # @constraintref kcl_p[1:length(ref[:bus])]
     # @constraintref kcl_q[1:length(ref[:bus])]
-    bus_ctr = 0
-    for (i,bus) in ref[:bus]
-        bus_ctr += 1
-
-        gamma = (abs(bus["pd"])>0) ? bus["qd"]/bus["pd"] : 0
+    for i in keys(ref[:bus])
+        qd = pd = gs = bs = 0.0
+        for load in ref[:bus_loads][i]
+            pd += ref[:load][load]["pd"]
+            qd += ref[:load][load]["qd"]
+        end
+        for shunt in ref[:bus_shunts][i]
+            gs += ref[:shunt][shunt]["gs"]
+            bs += ref[:shunt][shunt]["bs"]
+        end
+        gamma = abs(pd) > 0 ? qd/pd : 0.0
 
         # Bus KCL
         if i in nonzeroindices
@@ -229,35 +224,30 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
                 sum(p[a] for a in ref[:bus_arcs][i]) +
                 sum(p_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
                 sum(pg[g] for g in ref[:bus_gens][i]) -
-                bus["pd"] - bus["gs"]*vm[i]^2 +
-                u[i]
+                pd - gs*vm[i]^2 + u[i]
             )
 
             @NLconstraint(model,
                 sum(q[a] for a in ref[:bus_arcs][i]) +
                 sum(q_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
                 sum(qg[g] for g in ref[:bus_gens][i]) -
-                bus["qd"] + bus["bs"]*vm[i]^2 +
-                gamma*u[i]
+                qd - bs*vm[i]^2 + gamma*u[i]
             )
         else
             @NLconstraint(model,
                 sum(p[a] for a in ref[:bus_arcs][i]) +
                 sum(p_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
                 sum(pg[g] for g in ref[:bus_gens][i]) -
-                bus["pd"] - bus["gs"]*vm[i]^2
+                pd - gs*vm[i]^2
             )
 
             @NLconstraint(model,
                 sum(q[a] for a in ref[:bus_arcs][i]) +
                 sum(q_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
                 sum(qg[g] for g in ref[:bus_gens][i]) -
-                bus["qd"] + bus["bs"]*vm[i]^2
+                qd + bs*vm[i]^2
             )
         end
-
-
-
     end
 
     # constraint reference arrays for branch constraints
@@ -285,15 +275,15 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
         # Line Flow
         g, b = PowerModels.calc_branch_y(branch)
         tr, ti = PowerModels.calc_branch_t(branch)
-        c = branch["br_b"]
+        c = branch["b_fr"]
         tm = branch["tap"]^2
 
         # AC Line Flow Constraints
         @NLconstraint(model, p_fr == g/tm*vm_fr^2 + (-g*tr+b*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-b*tr-g*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
-        @NLconstraint(model, q_fr == -(b+c/2)/tm*vm_fr^2 - (-b*tr-g*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-g*tr+b*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
+        @NLconstraint(model, q_fr == -(b+c)/tm*vm_fr^2 - (-b*tr-g*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-g*tr+b*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
 
         @NLconstraint(model, p_to == g*vm_to^2 + (-g*tr-b*ti)/tm*(vm_to*vm_fr*cos(va_to-va_fr)) + (-b*tr+g*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
-        @NLconstraint(model, q_to == -(b+c/2)*vm_to^2 - (-b*tr+g*ti)/tm*(vm_to*vm_fr*cos(va_fr-va_to)) + (-g*tr-b*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
+        @NLconstraint(model, q_to == -(b+c)*vm_to^2 - (-b*tr+g*ti)/tm*(vm_to*vm_fr*cos(va_fr-va_to)) + (-g*tr-b*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
 
         # Phase Angle Difference Limit
 
