@@ -179,6 +179,8 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
 
     @assert !(data["multinetwork"])
     ref = PowerModels.build_ref(data)[:nw][0]
+    nonzeroindices = [i for (i,bus) in ref[:bus] if bus["pd"]>1e-5]
+    #nonzeroindices = (1:length(ref[:bus]))[[bus["pd"] for bus in values(ref[:bus])].>1e-5]
 
     @variable(model, va[i in keys(ref[:bus])])
     @variable(model, ref[:bus][i]["vmin"] <= vm[i in keys(ref[:bus])] <= ref[:bus][i]["vmax"], start=1.0)
@@ -195,7 +197,8 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
 
     #@NLparameter(model, u == 0)
     #@NLparameter(model, u[i=1:length(ref[:bus]) == 0)
-    @NLparameter(model, u[i in keys(ref[:bus])] == 0)
+    #@NLparameter(model, u[i in keys(ref[:bus])] == 0)
+    @NLparameter(model, u[i in nonzeroindices] == 0)
     #print(getvalue(u))
 
 
@@ -215,32 +218,46 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
     # @constraintref kcl_p[1:length(ref[:bus])]
     # @constraintref kcl_q[1:length(ref[:bus])]
     bus_ctr = 0
-    u_ind = 0
     for (i,bus) in ref[:bus]
         bus_ctr += 1
-        u_ind += 1
+
+        gamma = (abs(bus["pd"])>0) ? bus["qd"]/bus["pd"] : 0
+
         # Bus KCL
-        @NLconstraint(model,
-            sum(p[a] for a in ref[:bus_arcs][i]) +
-            sum(p_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
-            sum(pg[g] for g in ref[:bus_gens][i]) -
-            bus["pd"] - bus["gs"]*vm[i]^2
-            + u[i]
-        )
+        if i in nonzeroindices
+            @NLconstraint(model,
+                sum(p[a] for a in ref[:bus_arcs][i]) +
+                sum(p_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
+                sum(pg[g] for g in ref[:bus_gens][i]) -
+                bus["pd"] - bus["gs"]*vm[i]^2 +
+                u[i]
+            )
 
-        gamma = if abs(bus["pd"])>0
-                    bus["qd"]/bus["pd"]
-                else
-                    0
-                end
+            @NLconstraint(model,
+                sum(q[a] for a in ref[:bus_arcs][i]) +
+                sum(q_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
+                sum(qg[g] for g in ref[:bus_gens][i]) -
+                bus["qd"] + bus["bs"]*vm[i]^2 +
+                gamma*u[i]
+            )
+        else
+            @NLconstraint(model,
+                sum(p[a] for a in ref[:bus_arcs][i]) +
+                sum(p_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
+                sum(pg[g] for g in ref[:bus_gens][i]) -
+                bus["pd"] - bus["gs"]*vm[i]^2
+            )
 
-        @NLconstraint(model,
-            sum(q[a] for a in ref[:bus_arcs][i]) +
-            sum(q_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
-            sum(qg[g] for g in ref[:bus_gens][i]) -
-            bus["qd"] + bus["bs"]*vm[i]^2
-            + gamma*u[i]
-        )
+            @NLconstraint(model,
+                sum(q[a] for a in ref[:bus_arcs][i]) +
+                sum(q_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
+                sum(qg[g] for g in ref[:bus_gens][i]) -
+                bus["qd"] + bus["bs"]*vm[i]^2
+            )
+        end
+
+
+
     end
 
     # constraint reference arrays for branch constraints

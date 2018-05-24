@@ -129,4 +129,17 @@ function OutOfSample(testsize, m, W, scenarios, uniqueM)
     R_OS = RateOfDiscovery(uniqueM, observedTest, testsize)
 
     return R_OS, testsize
-end 
+end
+# ======================================================================
+
+"""
+Generate independent uniform samples based on load
+"""
+function UniformSamples(stddev, data)
+    wsamples
+    for (i,bus) in ref[:bus]
+        bus_std[i] = stddev*bus["Pd"]
+        wsamples[i] = rand(Uniform(-3*bus_std[i], 3*bus_std[i]), nsamples)
+    end
+
+return wsamples

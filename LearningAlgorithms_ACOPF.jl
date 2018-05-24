@@ -1,4 +1,7 @@
 # ======================================================================
+using Distributions
+
+
 """
 Run learning algorithm as a streaming algorithm for a given system and pre-computed set of samples
 
@@ -13,7 +16,7 @@ testsize  - number of scenarios used for out-of-sample test\\
 Outputs:\\
 """
 
-function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, filename)
+function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, filename, omega)
 
     # Evaluate stopping criterion
     R_max = StoppingCriterion(alpha, delta)
@@ -25,20 +28,37 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, filename)
     m = Mmin
     W = WindowSize(delta, epsilon, gamma, m)
 
-    # Posting model with NL parameters for omega
-    #UPDATE!!!!
+    # Parse data
     network_data = PowerModels.parse_file(filename)
+    # Build reference data
+    @assert !(network_data["multinetwork"])
+    ref = PowerModels.build_ref(network_data)[:nw][0]
+    nonzeroindices = [i for (i,bus) in ref[:bus] if bus["pd"]>1e-5]
+
+    # Posting model with NL parameters for omega
     m_init = Model(solver = NLsolver)
     jm, const_refs, var_refs = post_ac_opf_withref_uncertainty(network_data,m_init)
+
+    # Constructing distribution for samples
+    sigma = 0.1
+    load = [ref[:bus][i]["pd"] for i in nonzeroindices]
+    w = Distributions.MvNormal(
+        zeros(length(ref[:bus])),
+        diagm((sigma*load).^2)
+    )
 
     # Run OPF to get active sets
     for i = 1:m+W
         # 1. Generate sample
-        
+        w_sample = rand(w,1)
         # 2. Fix NL parameters
+        for j in keys(ref[:bus])
+            setvalue(nl_refs["u"][j], w_sample[j])
+        end
         # 3. Get active set
         active_set[i] = find_active_set(jm, const_refs, var_refs, tol)
         # 4. Create a simplified marker for the active set (similar to scenarios.whichbasis)
+
     end
 
     # WRITE SOME FUNCTION FOR THIS
