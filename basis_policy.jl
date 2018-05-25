@@ -10,8 +10,6 @@ constraints and sets active variables to their upper and lower bounds.
 """
 
 function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
-    model = Model(solver=NLsolver)
-
     active_rows = active_set["active_rows"]
     active_cols_lower = active_set["active_cols_lower"]
     active_cols_upper = active_set["active_cols_upper"]
