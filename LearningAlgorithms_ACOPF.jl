@@ -34,7 +34,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
 
     # Posting model with NL parameters for omega
     m_init = Model(solver = NLsolver)
-    jm, const_refs, var_refs = post_ac_opf_withref_uncertainty(network_data,m_init)
+    jm, const_refs, var_refs, nl_refs = post_ac_opf_withref_uncertainty(network_data,m_init)
 
     # Constructing distribution for samples
     sigma = 0.1
