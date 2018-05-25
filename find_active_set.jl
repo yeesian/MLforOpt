@@ -27,14 +27,14 @@ function find_active_set(jm, const_refs, var_refs, tol)
     active_cols_lower = find(abs.(jm.colVal - jm.colLower).< tol)    # variables that are at lower bound
     active_cols_upper = find(abs.(jm.colVal - jm.colUpper).< tol)    # variables that are at upper bound
 
-    active_set = Dict{String,Any}()
-    active_set["active_rows"] = active_rows
-    active_set["active_cols_lower"] = active_cols_lower
-    active_set["active_cols_upper"] = active_cols_upper
+    active_set = Dict{String,Vector{Int}}(
+        "active_rows" => active_rows,
+        "active_cols_lower" => active_cols_lower,
+        "active_cols_upper" => active_cols_upper
+    )
 
     return active_set
 end
-
 
 
 
@@ -67,7 +67,7 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
 
     # @constraintref slack_ref
     for (i,bus) in ref[:ref_buses]
-        # Refrence Bus
+        # Reference Bus
         slack_ref = @constraint(model, va[i] == 0)
     end
 
@@ -162,9 +162,6 @@ function post_ac_opf_withref(data::Dict{String,Any}, model=Model())
 end
 
 
-
-
-
 """
 Given a JuMP model and a PowerModels network data structure,
 Builds an AC-OPF formulation of the given data and returns the JuMP model
@@ -187,9 +184,7 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
     @variable(model, ref[:arcs_dc_param][a]["pmin"] <= p_dc[a in ref[:arcs_dc]] <= ref[:arcs_dc_param][a]["pmax"])
     @variable(model, ref[:arcs_dc_param][a]["qmin"] <= q_dc[a in ref[:arcs_dc]] <= ref[:arcs_dc_param][a]["qmax"])
 
-
     @NLparameter(model, u[i in nonzeroindices] == 0)
-
 
     from_idx = Dict(arc[1] => arc for arc in ref[:arcs_from_dc])
     @objective(model, Min,
