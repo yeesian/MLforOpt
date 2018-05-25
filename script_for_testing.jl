@@ -30,9 +30,9 @@ jm, const_refs, var_refs, nl_refs = post_ac_opf_withref_uncertainty(network_data
 status = solve(jm)
 
 
-alpha = 0.2
-delta = 0.2
-epsilon = 0.1
+alpha = 0.3
+delta = 0.5
+epsilon = 0.2
 gamma = 2
 Minitial = 1
 
