@@ -1,18 +1,10 @@
-using JuMP
-using Ipopt
-using PowerModels
 
 # returns a dictionary with the active active_set
 # inputs are the filename of the case file, tolerance for lagrange multipliers and
 # variables to be considered active, and the non-linear IpoptSolver
 
-function find_active_set(jm, const_refs, var_refs, tol)
+function find_active_set(jm, const_refs, var_refs, tol = 1e-5)
 
-    # network_data = PowerModels.parse_file(filename)
-    # m = Model(solver = NLsolver)
-    #
-    # jm, const_refs, var_refs = post_ac_opf_withref(network_data,m)
-    #
     status = solve(jm)
 
     # m.solver = IpoptSolver(mu_init = 1e-6)

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+
+filename='case3_lmbd case5_pjm case14_ieee case24_ieee_rts case30_ieee case39_epri case57_ieee case73_ieee_rts case118_ieee case162_ieee_dtc case200_pserc case240_pserc case300_ieee case1888_rte case1951_rte case2737sop_k case2848_rte case2869_pegase case6468_rte'
+
+mkdir output_files_AC
+mkdir results_ACnormal
+
+for f in $filename
+   do
+      sbatch --job-name=$f --partition=scaling --output=output_files_AC/$f.out ./run_tests $f
+   done
