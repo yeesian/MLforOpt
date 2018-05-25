@@ -8,5 +8,5 @@ mkdir results_ACnormal
 
 for f in $filename
    do
-      sbatch --job-name=$f --partition=scaling --output=output_files_AC/$f.out ./run_tests $f
+      sbatch --job-name=$f --partition=scaling --output=output_files_AC/$f.out ./run_tests_ACparallel $f
    done
