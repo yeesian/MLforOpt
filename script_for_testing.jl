@@ -1,5 +1,6 @@
 using Ipopt
 using Distributions
+using DataStructures
 
 include("find_active_set.jl")
 include("basis_policy.jl")
@@ -31,12 +32,30 @@ w = Distributions.MvNormal(
 )
 
 # Run OPF to get active sets
-results=[]
-active_rows = Set()
-active_cols_upper = Set()
-active_cols_lower = Set()
+active_rows = Set{Vector{Int}}()
+active_cols_upper = Set{Vector{Int}}()
+active_cols_lower = Set{Vector{Int}}()
 
-for i = 1:4#:m+W
+dict_active_rows = Dict{Vector{Int}, Int}()
+dict_active_cols_upper = Dict{Vector{Int}, Int}()
+dict_active_cols_lower = Dict{Vector{Int}, Int}()
+
+observed_active_sets = Set{Int}()
+all_active_sets = Set{Tuple{Int,Int,Int}}()
+active_sets = Tuple{Int,Int,Int}[]
+active_index = Dict{Tuple{Int,Int,Int}, Int}()
+
+observedsets = Set{Int}()
+windowcount = Dict{Int,Int}() # active set index => # of times it appears in the window
+q = DataStructures.Queue(Int)
+
+nsamples = 100
+Minitial = 20
+W = 10
+
+# Initialization
+
+for i = 1:(Minitial+W)#:m+W
     # 1. Generate sample
     w_sample = rand(w,1)
     # 2. Fix NL parameters
@@ -45,16 +64,58 @@ for i = 1:4#:m+W
     end
     # 3. Get active set
     active_set = find_active_set(jm, const_refs, var_refs, tol)
-    push!(active_rows, active_set["active_rows"])
-    push!(active_cols_upper, active_set["active_cols_upper"])
-    push!(active_cols_lower, active_set["active_cols_lower"])
+
     # 4. Create a simplified marker for the active set (similar to scenarios.whichbasis)
 
+    if !in(active_set["active_rows"], active_rows)
+        push!(active_rows, active_set["active_rows"])
+        dict_active_rows[active_set["active_rows"]] = length(active_rows)
+    end
+    if !in(active_set["active_cols_upper"], active_cols_upper)
+        push!(active_cols_upper, active_set["active_cols_upper"])
+        dict_active_cols_upper[active_set["active_cols_upper"]] = length(active_cols_upper)
+    end
+    if !in(active_set["active_cols_lower"], active_cols_lower)
+        push!(active_cols_lower, active_set["active_cols_lower"])
+        dict_active_cols_lower[active_set["active_cols_lower"]] = length(active_cols_lower)
+    end
+    new_active_set = (
+        dict_active_rows[active_set["active_rows"]],
+        dict_active_cols_upper[active_set["active_cols_upper"]],
+        dict_active_cols_lower[active_set["active_cols_lower"]]
+    )
+    if !in(new_active_set, all_active_sets)
+        push!(all_active_sets, new_active_set)
+        push!(active_sets, new_active_set)
+        active_index[new_active_set] = length(active_sets)
+    end
+    DataStructures.enqueue!(q, active_index[new_active_set])
+    windowcount[active_index[new_active_set]] = get(windowcount, active_index[new_active_set], 0) + 1
 end
+println("before: $q")
+for i in 1:Minitial
+    curr_active_set = dequeue!(q)
+    push!(observed_active_sets, curr_active_set)
+    windowcount[curr_active_set] -= 1
+    @assert windowcount[curr_active_set] >= 0
+end
+println("after: $q")
 
+# computing rate of discovery
+numerator = 0
+denominator = sum(values(windowcount))
+@assert denominator > 0
+for (as,v) in windowcount
+    if !in(as, observed_active_sets)
+        numerator += v
+    end
+end
+println("rate of discovery: $(numerator / denominator)")
 
-status = solve(jm)
+# Streaming
 
-active_set = find_active_set(jm, const_refs, var_refs, tol)
+# status = solve(jm)
 
-km = build_basis_policy_model(filename, NLsolver, active_set)
+# active_set = find_active_set(jm, const_refs, var_refs, tol)
+
+# km = build_basis_policy_model(filename, NLsolver, active_set)
