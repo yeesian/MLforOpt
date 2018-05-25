@@ -12,15 +12,37 @@ NLsolver = IpoptSolver(print_level=0)
 tol = 1e-5
 
 #filename = "data/nesta_case1397sp_eir.m"
-filename = "pglib-opf/pglib_opf_case5_pjm.m"
+#filename = "pglib-opf/pglib_opf_case5_pjm.m"
+#filename = "pglib-opf/pglib_opf_case24_ieee_rts.m"
+#filename = "pglib-opf/pglib_opf_case57_ieee.m"
+filename = "pglib-opf/pglib_opf_case240_pserc.m"
 
-alpha = 0.1
-delta = 0.1
-epsilon = 0.05
+network_data = PowerModels.parse_file(filename)
+ref = PowerModels.build_ref(network_data)[:nw][0]
+
+result = run_ac_opf(filename,NLsolver)
+
+m = Model(solver = NLsolver)
+
+#jm, const_refs, var_refs = post_ac_opf_withref(network_data,m)
+jm, const_refs, var_refs, nl_refs = post_ac_opf_withref_uncertainty(network_data,m)
+
+status = solve(jm)
+
+
+alpha = 0.2
+delta = 0.2
+epsilon = 0.1
 gamma = 2
 Minitial = 1
 
-M, W, RoD, K_M = RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename)
+M, W, RoD, K_M, results = RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename)
+
+
+
+
+
+
 
 #
 # network_data = PowerModels.parse_file(filename)

@@ -30,7 +30,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
     # Parse data
     network_data = PowerModels.parse_file(filename)
     ref = PowerModels.build_ref(network_data)[:nw][0]
-    nonzeroindices = [i for (i,loads) in ref[:bus_loads] if length(loads) > 0]
+    #nonzeroindices = [i for (i,loads) in ref[:bus_loads] if length(loads) > 0]
 
     # Posting model with NL parameters for omega
     m_init = Model(solver = NLsolver)
@@ -38,9 +38,9 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
 
     # Constructing distribution for samples
     sigma = 0.1
-    load = [sum(ref[:load][l]["pd"] for l in ref[:bus_loads][i]) for i in nonzeroindices]
+    load = [l["pd"] for l in values(ref[:load])]
     w = Distributions.MvNormal(
-        zeros(length(nonzeroindices)),
+        zeros(length(ref[:load])),
         diagm((sigma*load).^2)
     )
 
@@ -62,13 +62,17 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
     windowcount = Dict{Int,Int}() # active set index => # of times it appears in the window
     q = DataStructures.Queue(Int)
 
+    #scenario = Dict{String,Any}[]
+    scenario_realization = Matrix{Float64}[]
+    scenario_active_set = Int[]
+
     # Initialization
 
-    for i = 1:(Minitial+W)#:m+W
+    ProgressMeter.@showprogress 1 for i = 1:(Minitial+W)#:m+W
         # 1. Generate sample
         w_sample = rand(w,1)
         # 2. Fix NL parameters
-        for (k,j) in enumerate(nonzeroindices)
+        for (k,j) in enumerate(keys(ref[:load]))
             setvalue(nl_refs["u"][j], w_sample[k])
         end
         # 3. Get active set
@@ -107,6 +111,11 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
         # Add the active set to the queue (the list of all active sets)
         DataStructures.enqueue!(q, active_index[new_active_set])
 
+        push!(scenario_active_set, active_index[new_active_set])
+        push!(scenario_realization, w_sample)
+
+        #push!(scenario, Dict{String,Any}("realization"=>w_sample, "active_set"=>active_index[new_active_set])))
+
         # Update the count of how frequently the active sets appear in the queue
         windowcount[active_index[new_active_set]] = get(windowcount, active_index[new_active_set], 0) + 1
     end
@@ -135,7 +144,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
     ProgressMeter.@showprogress 1 for j = 1:maxsamples
         M += 1;
         Wold = W;
-        W += 1; # update to use WindowSize function which depends on M
+        W = WindowSize(delta, epsilon, gamma, M)
 
         println(W-Wold+1)
 
@@ -146,7 +155,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
             # 1. Generate sample
             w_sample = rand(w,1)
             # 2. Fix NL parameters
-            for (k,j) in enumerate(nonzeroindices)
+            for (k,j) in enumerate(keys(ref[:load]))
                 setvalue(nl_refs["u"][j], w_sample[k])
             end
             # 3. Get active set
@@ -185,17 +194,18 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
             # Add the active set to the queue (the list of all active sets)
             DataStructures.enqueue!(q, active_index[new_active_set])
 
+            push!(scenario_active_set, active_index[new_active_set])
+            push!(scenario_realization, w_sample)
+
             # Update the count of how frequently the active sets appear in the queue
             windowcount[active_index[new_active_set]] = get(windowcount, active_index[new_active_set], 0) + 1
         end
 
         # pushing one sample from W into M
-        for i in 1:Minitial
-            curr_active_set = dequeue!(q)                   # remove the sample
-            push!(observed_active_sets, curr_active_set)    # put active set into observed active set
-            windowcount[curr_active_set] -= 1               # update windowcount
-            @assert windowcount[curr_active_set] >= 0
-        end
+        curr_active_set = dequeue!(q)                   # remove the sample
+        push!(observed_active_sets, curr_active_set)    # put active set into observed active set
+        windowcount[curr_active_set] -= 1               # update windowcount
+        @assert windowcount[curr_active_set] >= 0
 
         # computing rate of discovery
         numerator = 0
@@ -210,15 +220,65 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
         println("rate of discovery: $(numerator / denominator)")
 
         if RoD <= threshold
-            K_M = length(observed_active_sets)
-            return M, W, RoD, K_M
-        end
 
+            K_M = length(observed_active_sets)
+
+            # Create inverse mapping from the index to the active_rows, etc
+            list_active_rows = Array(Vector{Int}, length(active_rows))
+            list_active_cols_upper = Array(Vector{Int}, length(active_cols_upper))
+            list_active_cols_lower = Array(Vector{Int}, length(active_cols_lower))
+            for (v,i) in dict_active_rows; list_active_rows[i] = v end
+            for (v,i) in dict_active_cols_upper; list_active_cols_upper[i] = v end
+            for (v,i) in dict_active_cols_lower; list_active_cols_lower[i] = v end
+
+            results = Dict{String,Any}(
+                "alpha" => alpha,
+                "delta" => delta,
+                "epsilon" => epsilon,
+                "gamma" => gamma,
+                "Minitial" => Minitial,
+                "filename" => filename,
+
+                "active_rows" => list_active_rows,
+                "active_cols_upper" => list_active_cols_upper,
+                "active_cols_lower" => list_active_cols_lower,
+
+                "active_sets" => active_sets,
+                "scenario_active_set" => scenario_active_set,
+                "scenario_realization" => scenario_realization
+            )
+
+            return M, W, RoD, K_M, results
+        end
     end
 
     println("Not enough samples available, algorithm did not terminate!")
     K_M = length(observed_active_sets)
-    return M, W, RoD, K_M
+    # Create inverse mapping from the index to the active_rows, etc
+    list_active_rows = Array(Vector{Int}, length(active_rows))
+    list_active_cols_upper = Array(Vector{Int}, length(active_cols_upper))
+    list_active_cols_lower = Array(Vector{Int}, length(active_cols_lower))
+    for (v,i) in dict_active_rows; list_active_rows[i] = v end
+    for (v,i) in dict_active_cols_upper; list_active_cols_upper[i] = v end
+    for (v,i) in dict_active_cols_lower; list_active_cols_lower[i] = v end
+
+    results = Dict{String,Any}(
+        "alpha" => alpha,
+        "delta" => delta,
+        "epsilon" => epsilon,
+        "gamma" => gamma,
+        "Minitial" => Minitial,
+        "filename" => filename,
+
+        "active_rows" => list_active_rows,
+        "active_cols_upper" => list_active_cols_upper,
+        "active_cols_lower" => list_active_cols_lower,
+
+        "active_sets" => active_sets,
+        "scenario_active_set" => scenario_active_set,
+        "scenario_realization" => scenario_realization
+    )
+    return M, W, RoD, K_M, results
 
 end
 # ======================================================================
