@@ -1,6 +1,4 @@
 # ======================================================================
-using Distributions
-using ProgressMeter
 
 """
 Run learning algorithm as a streaming algorithm for a given system and pre-computed set of samples
@@ -16,7 +14,7 @@ testsize  - number of scenarios used for out-of-sample test\\
 Outputs:\\
 """
 
-function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename; maxsamples = 1000)
+function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver; maxsamples = 1000, tol = 1e-5)
 
     # Evaluate stopping criterion
     threshold = StoppingCriterion(alpha, epsilon)
@@ -37,7 +35,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
     jm, const_refs, var_refs, nl_refs = post_ac_opf_withref_uncertainty(network_data,m_init)
 
     # Constructing distribution for samples
-    sigma = 0.1
+    sigma = 0.05
     load = [l["pd"] for l in values(ref[:load])]
     w = Distributions.MvNormal(
         zeros(length(ref[:load])),
