@@ -18,14 +18,15 @@ tol = 1e-5
 
 #filename = "data/nesta_case1397sp_eir.m"
 #filename = "pglib-opf/pglib_opf_case5_pjm.m"
-filename = "pglib-opf/pglib_opf_case24_ieee_rts.m"
+#filename = "pglib-opf/pglib_opf_case24_ieee_rts.m"
 #filename = "pglib-opf/pglib_opf_case57_ieee.m"
 #filename = "pglib-opf/pglib_opf_case240_pserc.m"
+filename = "pglib-opf/pglib_opf_case300_ieee.m"
 
 network_data = PowerModels.parse_file(filename)
 ref = PowerModels.build_ref(network_data)[:nw][0]
 
-result = run_ac_opf(filename,NLsolver)
+#result = run_ac_opf(filename,NLsolver)
 
 m = Model(solver = NLsolver)
 
@@ -35,16 +36,16 @@ jm, const_refs, var_refs, nl_refs = post_ac_opf_withref_uncertainty(network_data
 status = solve(jm)
 
 
-alpha = 0.3
+alpha = 0.4
 delta = 0.5
-epsilon = 0.2
+epsilon = 0.18
 gamma = 2
 Minitial = 1
 
 M, W, RoD, K_M, results = RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver)
 #M, W, RoD, K_M, results = RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename)
 
-JLD.save("results_test/$(f).jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
+JLD.save("$(filename).jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
 
 
 

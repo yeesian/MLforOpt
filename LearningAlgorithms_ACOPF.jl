@@ -8,13 +8,14 @@ alpha   - maximum unobserved mass \\
 delta   - confidence level \\
 epsilon - difference between rate of discovery and probability of unobserved set\\
 gamma   - constant > 1\\
-scenarios - pre-computed set of scenarios\\
-testsize  - number of scenarios used for out-of-sample test\\
 
 Outputs:\\
 """
 
 function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver; maxsamples = 1000, tol = 1e-5)
+
+    # Keeping track of infeasible samples
+    infeasible_samples = 0
 
     # Evaluate stopping criterion
     threshold = StoppingCriterion(alpha, epsilon)
@@ -36,9 +37,9 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
 
     # Constructing distribution for samples
     sigma = 0.05
-    load = [l["pd"] for l in values(ref[:load])]
+    load = [l["pd"] for (i,l) in ref[:load] if l["pd"] > 0.0]
     w = Distributions.MvNormal(
-        zeros(length(ref[:load])),
+        zeros(length(load)),
         diagm((sigma*abs(load)).^2)
     )
 
@@ -67,11 +68,26 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
     # Initialization
 
     ProgressMeter.@showprogress 1 for i = 1:(Minitial+W)#:m+W
-        # 1. Generate sample
-        w_sample = rand(w,1)
-        # 2. Fix NL parameters
-        for (k,j) in enumerate(keys(ref[:load]))
-            setvalue(nl_refs["u"][j], w_sample[k])
+
+        w_sample = Array{Float64}
+
+        for nthtry=1:100
+            # 1. Generate sample
+            w_sample = rand(w,1)
+            # 2. Fix NL parameters
+            for (k,j) in enumerate(nonzeroload)
+                setvalue(nl_refs["u"][j], w_sample[k])
+            end
+            # 3. Solve problem
+            status = solve(jm)
+            if status == :Optimal
+                if nthtry > 1
+                    println("It took $nthtry tries to solve the problem")
+                end
+                break
+            else
+                infeasible_samples = infeasible_samples + 1
+            end
         end
         # 3. Get active set
         active_set = find_active_set(jm, const_refs, var_refs, tol)
@@ -127,7 +143,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
 
     # computing rate of discovery
     numerator = 0
-    denominator = sum(values(windowcount))
+    denominator = sum(l for (i,l) in windowcount)
     @assert denominator > 0
     for (as,v) in windowcount
         if !in(as, observed_active_sets)
@@ -144,18 +160,34 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
         Wold = W;
         W = WindowSize(delta, epsilon, gamma, M)
 
-        println(W-Wold+1)
+        k_m=length(observed_active_sets)
+        println("Iteration: $j M: $M W: $W K_M: $k_m")
 
         # add new samples to W
         for i = 1:W-Wold+1 #add at least one sample:
                            #replace the which will be moved in to M,
                            #plus add new samples to cover an increase in the size of W
-            # 1. Generate sample
-            w_sample = rand(w,1)
-            # 2. Fix NL parameters
-            for (k,j) in enumerate(keys(ref[:load]))
-                setvalue(nl_refs["u"][j], w_sample[k])
-            end
+           w_sample = Array{Float64}
+
+           for nthtry=1:100
+               # 1. Generate sample
+               w_sample = rand(w,1)
+               # 2. Fix NL parameters
+               for (k,j) in enumerate(nonzeroload)
+                   setvalue(nl_refs["u"][j], w_sample[k])
+               end
+               # 3. Solve problem
+               status = solve(jm)
+               if status == :Optimal
+                   if nthtry > 1
+                       println("It took $nthtry tries to solve the problem")
+                   end
+                   break
+               else
+                   infeasible_samples = infeasible_samples + 1
+               end
+           end
+
             # 3. Get active set
             active_set = find_active_set(jm, const_refs, var_refs, tol)
 
@@ -207,7 +239,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
 
         # computing rate of discovery
         numerator = 0
-        denominator = sum(values(windowcount))
+        denominator = sum(l for (i,l) in windowcount)
         @assert denominator > 0
         for (as,v) in windowcount
             if !in(as, observed_active_sets)
@@ -216,6 +248,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
         end
         RoD = (numerator / denominator)
         println("rate of discovery: $(numerator / denominator)")
+        println()
 
         if RoD <= threshold
 
@@ -243,7 +276,13 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
 
                 "active_sets" => active_sets,
                 "scenario_active_set" => scenario_active_set,
-                "scenario_realization" => scenario_realization
+                "scenario_realization" => scenario_realization,
+
+                "infeasible_samples" => infeasible_samples,
+                "M" => M,
+                "W" => W,
+                "RoD" => RoD,
+                "K_M" => K_M
             )
 
             return M, W, RoD, K_M, results
@@ -274,7 +313,13 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
 
         "active_sets" => active_sets,
         "scenario_active_set" => scenario_active_set,
-        "scenario_realization" => scenario_realization
+        "scenario_realization" => scenario_realization,
+
+        "infeasible_samples" => infeasible_samples,
+        "M" => M,
+        "W" => W,
+        "RoD" => RoD,
+        "K_M" => K_M
     )
     return M, W, RoD, K_M, results
 

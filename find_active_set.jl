@@ -5,12 +5,6 @@
 
 function find_active_set(jm, const_refs, var_refs, tol = 1e-5)
 
-    status = solve(jm)
-
-    # m.solver = IpoptSolver(mu_init = 1e-6)
-    # status = solve(m)
-
-    # all_const_refs = [const_refs["sapp_fr_ref"]; const_refs["sapp_to_ref"]]
     all_var_refs = [var_refs["pg"][:];var_refs["qg"][:]]
 
     row_duals = JuMP.getdual(const_refs)    # find dual of the constraints
@@ -166,6 +160,7 @@ The withref modification also returns the variable and constraint references
 
 function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
     ref = PowerModels.build_ref(data)[:nw][0]
+    nonzeroload = [i for (i,l) in ref[:load] if l["pd"] > 0.0]
 
     @variable(model, va[i in keys(ref[:bus])])
     @variable(model, ref[:bus][i]["vmin"] <= vm[i in keys(ref[:bus])] <= ref[:bus][i]["vmax"], start=1.0)
@@ -179,7 +174,7 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
     @variable(model, ref[:arcs_dc_param][a]["pmin"] <= p_dc[a in ref[:arcs_dc]] <= ref[:arcs_dc_param][a]["pmax"])
     @variable(model, ref[:arcs_dc_param][a]["qmin"] <= q_dc[a in ref[:arcs_dc]] <= ref[:arcs_dc_param][a]["qmax"])
 
-    @NLparameter(model, u[i in keys(ref[:load])] == 0)
+    @NLparameter(model, u[i in nonzeroload] == 0)
 
     from_idx = Dict(arc[1] => arc for arc in ref[:arcs_from_dc])
     @objective(model, Min,
@@ -217,7 +212,7 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
             sum(p[a] for a in ref[:bus_arcs][i]) +
             sum(p_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
             sum(pg[g] for g in ref[:bus_gens][i]) -
-            pd - gs*vm[i]^2 + sum(u[load] for load in ref[:bus_loads][i])
+            pd - gs*vm[i]^2 + sum(u[load] for load in ref[:bus_loads][i] if load in nonzeroload)
         )
 
         @NLconstraint(model,
