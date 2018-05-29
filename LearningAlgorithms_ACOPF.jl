@@ -29,7 +29,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
     # Parse data
     network_data = PowerModels.parse_file(filename)
     ref = PowerModels.build_ref(network_data)[:nw][0]
-    nonzeroload = [i for (i,l) in ref[:load] if l["pd"] > 0.0]
+    nonzeroload = [i for (i,l) in ref[:load] if abs(l["pd"]) > 0.0]
     #nonzeroindices = [i for (i,loads) in ref[:bus_loads] if length(loads) > 0]
 
     # Posting model with NL parameters for omega
@@ -41,7 +41,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
     load = [l["pd"] for (i,l) in ref[:load] if l["pd"] > 0.0]
     w = Distributions.MvNormal(
         zeros(length(load)),
-        diagm((sigma*abs(load)).^2)
+        diagm((sigma*abs.(load)).^2)
     )
 
     # Run OPF to get active sets

@@ -160,7 +160,7 @@ The withref modification also returns the variable and constraint references
 
 function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
     ref = PowerModels.build_ref(data)[:nw][0]
-    nonzeroload = [i for (i,l) in ref[:load] if l["pd"] > 0.0]
+    nonzeroload = [i for (i,l) in ref[:load] if abs(l["pd"]) > 0.0]
 
     @variable(model, va[i in keys(ref[:bus])])
     @variable(model, ref[:bus][i]["vmin"] <= vm[i in keys(ref[:bus])] <= ref[:bus][i]["vmax"], start=1.0)
@@ -220,7 +220,7 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
             sum(q_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
             sum(qg[g] for g in ref[:bus_gens][i]) -
             qd + bs*vm[i]^2 +
-            sum(u[load]*ref[:load][load]["qd"]/ref[:load][load]["pd"] for load in ref[:bus_loads][i] if ref[:load][load]["pd"] > 0)
+            sum(u[load]*ref[:load][load]["qd"]/ref[:load][load]["pd"] for load in ref[:bus_loads][i] if abs(ref[:load][load]["pd"]) > 0)
         )
 
     end
