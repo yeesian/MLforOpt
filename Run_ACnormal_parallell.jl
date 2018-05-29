@@ -23,9 +23,9 @@ include("LearningAlgorithms_ACOPF.jl")
 
 NLsolver = IpoptSolver(print_level=0)
 
-alpha = 0.3
-delta = 0.5
-epsilon = 0.2
+alpha = 0.1
+delta = 0.01
+epsilon = 0.05
 gamma = 2
 Minitial = 1
 
