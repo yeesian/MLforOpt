@@ -39,7 +39,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
     load = [l["pd"] for l in values(ref[:load])]
     w = Distributions.MvNormal(
         zeros(length(ref[:load])),
-        diagm((sigma*load).^2)
+        diagm((sigma*abs(load)).^2)
     )
 
     # Run OPF to get active sets
