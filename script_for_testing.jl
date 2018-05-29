@@ -44,6 +44,7 @@ Minitial = 1
 M, W, RoD, K_M, results = RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver)
 #M, W, RoD, K_M, results = RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename)
 
+JLD.save("results_test/$(f).jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
 
 
 
