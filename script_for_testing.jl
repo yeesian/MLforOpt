@@ -18,9 +18,9 @@ tol = 1e-5
 
 #filename = "data/nesta_case1397sp_eir.m"
 #filename = "pglib-opf/pglib_opf_case5_pjm.m"
-#filename = "pglib-opf/pglib_opf_case24_ieee_rts.m"
+filename = "pglib-opf/pglib_opf_case24_ieee_rts.m"
 #filename = "pglib-opf/pglib_opf_case57_ieee.m"
-filename = "pglib-opf/pglib_opf_case240_pserc.m"
+#filename = "pglib-opf/pglib_opf_case240_pserc.m"
 
 network_data = PowerModels.parse_file(filename)
 ref = PowerModels.build_ref(network_data)[:nw][0]
@@ -41,7 +41,8 @@ epsilon = 0.2
 gamma = 2
 Minitial = 1
 
-M, W, RoD, K_M, results = RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename)
+M, W, RoD, K_M, results = RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver)
+#M, W, RoD, K_M, results = RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename)
 
 
 
