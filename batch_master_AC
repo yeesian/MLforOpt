@@ -8,5 +8,5 @@ mkdir results_ACnormal_180530
 
 for f in $filename
    do
-      sbatch --job-name=$f --qos=long --partition=scaling --output=output_files_AC/$f.out ./run_tests_ACparallel $f
+      sbatch --job-name=$f --qos=long --time=2-00:00:00 --partition=scaling --output=output_files_AC_180530/$f.out ./run_tests_ACparallel $f
    done
