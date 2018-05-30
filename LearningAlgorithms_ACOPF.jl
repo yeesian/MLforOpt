@@ -38,7 +38,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
 
     # Constructing distribution for samples
     sigma = 0.05
-    load = [l["pd"] for (i,l) in ref[:load] if l["pd"] > 0.0]
+    load = [l["pd"] for (i,l) in ref[:load] if abs(l["pd"]) > 0.0]
     w = Distributions.MvNormal(
         zeros(length(load)),
         diagm((sigma*abs.(load)).^2)
