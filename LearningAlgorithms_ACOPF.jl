@@ -12,7 +12,7 @@ gamma   - constant > 1\\
 Outputs:\\
 """
 
-function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver; maxsamples = 1000, tol = 1e-5)
+function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver; maxsamples = 50000, tol = 1e-5, sigma=0.03)
 
     # Keeping track of infeasible samples
     infeasible_samples = 0
@@ -37,7 +37,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
     jm, const_refs, var_refs, nl_refs = post_ac_opf_withref_uncertainty(network_data,m_init)
 
     # Constructing distribution for samples
-    sigma = 0.05
+    #sigma = 0.03
     load = [l["pd"] for (i,l) in ref[:load] if abs(l["pd"]) > 0.0]
     w = Distributions.MvNormal(
         zeros(length(load)),
@@ -284,6 +284,8 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
                 "W" => W,
                 "RoD" => RoD,
                 "K_M" => K_M
+
+                "sigma" => sigma
             )
 
             return M, W, RoD, K_M, results
@@ -321,6 +323,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
         "W" => W,
         "RoD" => RoD,
         "K_M" => K_M
+        "sigma" => sigma
     )
     return M, W, RoD, K_M, results
 

@@ -31,7 +31,7 @@ Minitial = 1
 
 M, W, RoD, K_M, results = RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, data_file, NLsolver, tol = 1e-5)
 
-JLD.save("results_ACnormal_180530/$(f).jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
+JLD.save("results_ACnormal_180531/$(f).jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
 
 println()
 println("!!!!!!!!!!!!!!! FINISHED WORKING ON $f !!!!!!!!!!!!!!!!!!!!")
