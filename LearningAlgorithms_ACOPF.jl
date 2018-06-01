@@ -283,7 +283,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
                 "M" => M,
                 "W" => W,
                 "RoD" => RoD,
-                "K_M" => K_M
+                "K_M" => K_M,
 
                 "sigma" => sigma
             )
@@ -322,7 +322,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
         "M" => M,
         "W" => W,
         "RoD" => RoD,
-        "K_M" => K_M
+        "K_M" => K_M,
         "sigma" => sigma
     )
     return M, W, RoD, K_M, results
