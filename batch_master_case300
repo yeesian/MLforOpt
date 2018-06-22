@@ -1,0 +1,12 @@
+#!/bin/bash
+
+
+filename='case300_ieee'
+
+mkdir output_files_AC_case300
+mkdir results_ACnormal_case300
+
+for f in $filename
+   do
+      sbatch --job-name=$f --qos=scavenge --time=7-00:00:00 --partition=scaling --output=output_files_AC_case300/$f.out ./run_tests_AC_case300 $f
+   done
