@@ -31,7 +31,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
     ref = PowerModels.build_ref(network_data)[:nw][0]
     nonzeroload = [i for (i,l) in ref[:load] if abs(l["pd"]) > 0.0]
     #nonzeroindices = [i for (i,loads) in ref[:bus_loads] if length(loads) > 0]
-    
+
 
     # Posting model with NL parameters for omega
     m_init = Model(solver = NLsolver)
@@ -252,7 +252,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
         println("rate of discovery: $(numerator / denominator)")
         println()
 
-        if RoD <= threshold || mod(j/1000)==0
+        if RoD <= threshold || mod(j,1000)==0
 
             K_M = length(observed_active_sets)
 
