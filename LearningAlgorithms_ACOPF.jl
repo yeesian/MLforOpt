@@ -252,7 +252,7 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
         println("rate of discovery: $(numerator / denominator)")
         println()
 
-        if RoD <= threshold || mod(j,1000)==0
+        if RoD <= threshold
 
             K_M = length(observed_active_sets)
 
@@ -291,6 +291,46 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
 
             return M, W, RoD, K_M, results
         end
+
+        if mod(j,1000)==0
+
+            K_M = length(observed_active_sets)
+
+            # Create inverse mapping from the index to the active_rows, etc
+            list_active_rows = Array(Vector{Int}, length(active_rows))
+            list_active_cols_upper = Array(Vector{Int}, length(active_cols_upper))
+            list_active_cols_lower = Array(Vector{Int}, length(active_cols_lower))
+            for (v,i) in dict_active_rows; list_active_rows[i] = v end
+            for (v,i) in dict_active_cols_upper; list_active_cols_upper[i] = v end
+            for (v,i) in dict_active_cols_lower; list_active_cols_lower[i] = v end
+
+            results = Dict{String,Any}(
+                "alpha" => alpha,
+                "delta" => delta,
+                "epsilon" => epsilon,
+                "gamma" => gamma,
+                "Minitial" => Minitial,
+                "filename" => filename,
+
+                "active_rows" => list_active_rows,
+                "active_cols_upper" => list_active_cols_upper,
+                "active_cols_lower" => list_active_cols_lower,
+
+                "active_sets" => active_sets,
+                "scenario_active_set" => scenario_active_set,
+                "scenario_realization" => scenario_realization,
+
+                "infeasible_samples" => infeasible_samples,
+                "M" => M,
+                "W" => W,
+                "RoD" => RoD,
+                "K_M" => K_M,
+
+                "sigma" => sigma
+            )
+
+        end
+
     end
 
     println("Not enough samples available, algorithm did not terminate!")
