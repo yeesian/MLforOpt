@@ -161,6 +161,7 @@ The withref modification also returns the variable and constraint references
 function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
     ref = PowerModels.build_ref(data)[:nw][0]
     nonzeroload = [i for (i,l) in ref[:load] if abs(l["pd"]) > 0.0]
+    #randcost = [rand(Uniform(),1) for (i,gen) in ref[:gen]]
 
     @variable(model, va[i in keys(ref[:bus])])
     @variable(model, ref[:bus][i]["vmin"] <= vm[i in keys(ref[:bus])] <= ref[:bus][i]["vmax"], start=1.0)
@@ -180,6 +181,7 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
     @objective(model, Min,
         sum(gen["cost"][1]*pg[i]^2 + gen["cost"][2]*pg[i] + gen["cost"][3] for (i,gen) in ref[:gen]) +
         sum(dcline["cost"][1]*p_dc[from_idx[i]]^2 + dcline["cost"][2]*p_dc[from_idx[i]] + dcline["cost"][3] for (i,dcline) in ref[:dcline])
+        + sum(qg[i]^2 for (i,gen) in ref[:gen])
     )
 
     # @constraintref slack_ref
