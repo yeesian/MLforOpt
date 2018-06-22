@@ -181,7 +181,7 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
     @objective(model, Min,
         sum(gen["cost"][1]*pg[i]^2 + gen["cost"][2]*pg[i] + gen["cost"][3] for (i,gen) in ref[:gen]) +
         sum(dcline["cost"][1]*p_dc[from_idx[i]]^2 + dcline["cost"][2]*p_dc[from_idx[i]] + dcline["cost"][3] for (i,dcline) in ref[:dcline])
-        + sum(qg[i]^2 for (i,gen) in ref[:gen])
+        #+ sum(qg[i]^2 for (i,gen) in ref[:gen])
     )
 
     # @constraintref slack_ref
