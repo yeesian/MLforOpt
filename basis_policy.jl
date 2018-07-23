@@ -10,8 +10,6 @@ constraints and sets active variables to their upper and lower bounds.
 """
 
 function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
-    model = Model(solver=NLsolver)
-
     active_rows = active_set["active_rows"]
     active_cols_lower = active_set["active_cols_lower"]
     active_cols_upper = active_set["active_cols_upper"]
@@ -21,7 +19,6 @@ function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
 
     model = Model(solver = NLsolver)
 
-    @assert !(data["multinetwork"])
     ref = PowerModels.build_ref(data)[:nw][0]
 
     # VARIABLES
@@ -95,28 +92,33 @@ function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
         sum(dcline["cost"][1]*p_dc[from_idx[i]]^2 + dcline["cost"][2]*p_dc[from_idx[i]] + dcline["cost"][3] for (i,dcline) in ref[:dcline])
     )
 
-
-
-
     for (i,bus) in ref[:ref_buses]
         # Refrence Bus
         @constraint(model, va[i] == 0)
     end
 
-
-    for (i,bus) in ref[:bus]
+    for i in keys(ref[:bus])
         # Bus KCL
+        qd = pd = gs = bs = 0.0
+        for load in ref[:bus_loads][i]
+            pd += ref[:load][load]["pd"]
+            qd += ref[:load][load]["qd"]
+        end
+        for shunt in ref[:bus_shunts][i]
+            gs += ref[:shunt][shunt]["gs"]
+            bs += ref[:shunt][shunt]["bs"]
+        end
         @constraint(model,
             sum(p[a] for a in ref[:bus_arcs][i]) +
             sum(p_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
-            sum(pg[g] for g in ref[:bus_gens][i]) - bus["pd"] - bus["gs"]*vm[i]^2
-            )
+            sum(pg[g] for g in ref[:bus_gens][i]) - pd - gs*vm[i]^2
+        )
 
         @constraint(model,
             sum(q[a] for a in ref[:bus_arcs][i]) +
             sum(q_dc[a_dc] for a_dc in ref[:bus_arcs_dc][i]) ==
-            sum(qg[g] for g in ref[:bus_gens][i]) - bus["qd"] + bus["bs"]*vm[i]^2
-            )
+            sum(qg[g] for g in ref[:bus_gens][i]) - qd + bs*vm[i]^2
+        )
     end
 
 
@@ -137,15 +139,15 @@ function post_ac_opf_active_set(data::Dict{String,Any}, NLsolver, active_set)
         # Line Flow
         g, b = PowerModels.calc_branch_y(branch)
         tr, ti = PowerModels.calc_branch_t(branch)
-        c = branch["br_b"]
+        c = branch["b_fr"]
         tm = branch["tap"]^2
 
         # AC Line Flow Constraints
         @NLconstraint(model, p_fr == g/tm*vm_fr^2 + (-g*tr+b*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-b*tr-g*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
-        @NLconstraint(model, q_fr == -(b+c/2)/tm*vm_fr^2 - (-b*tr-g*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-g*tr+b*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
+        @NLconstraint(model, q_fr == -(b+c)/tm*vm_fr^2 - (-b*tr-g*ti)/tm*(vm_fr*vm_to*cos(va_fr-va_to)) + (-g*tr+b*ti)/tm*(vm_fr*vm_to*sin(va_fr-va_to)) )
 
         @NLconstraint(model, p_to == g*vm_to^2 + (-g*tr-b*ti)/tm*(vm_to*vm_fr*cos(va_to-va_fr)) + (-b*tr+g*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
-        @NLconstraint(model, q_to == -(b+c/2)*vm_to^2 - (-b*tr+g*ti)/tm*(vm_to*vm_fr*cos(va_fr-va_to)) + (-g*tr-b*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
+        @NLconstraint(model, q_to == -(b+c)*vm_to^2 - (-b*tr+g*ti)/tm*(vm_to*vm_fr*cos(va_fr-va_to)) + (-g*tr-b*ti)/tm*(vm_to*vm_fr*sin(va_to-va_fr)) )
 
 
         # Phase Angle Difference Limit

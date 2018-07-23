@@ -1,6 +1,4 @@
 # ======================================================================
-using Distributions
-
 
 """
 Run learning algorithm as a streaming algorithm for a given system and pre-computed set of samples
@@ -10,139 +8,365 @@ alpha   - maximum unobserved mass \\
 delta   - confidence level \\
 epsilon - difference between rate of discovery and probability of unobserved set\\
 gamma   - constant > 1\\
-scenarios - pre-computed set of scenarios\\
-testsize  - number of scenarios used for out-of-sample test\\
 
 Outputs:\\
 """
 
-function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, filename, omega)
+function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver; maxsamples = 50000, tol = 1e-5, sigma=0.03)
+
+    # Keeping track of infeasible samples
+    infeasible_samples = 0
 
     # Evaluate stopping criterion
-    R_max = StoppingCriterion(alpha, delta)
+    threshold = StoppingCriterion(alpha, epsilon)
 
     #Find maximum window length (since the number of samples is limited)
     #W_max = WindowSize(delta, epsilon, gamma, length(scenarios.whichbasis[:,1]))
 
     # Initialize
-    m = Mmin
-    W = WindowSize(delta, epsilon, gamma, m)
+    W = WindowSize(delta, epsilon, gamma, Minitial)
 
     # Parse data
     network_data = PowerModels.parse_file(filename)
-    # Build reference data
-    @assert !(network_data["multinetwork"])
     ref = PowerModels.build_ref(network_data)[:nw][0]
-    nonzeroindices = [i for (i,bus) in ref[:bus] if bus["pd"]>1e-5]
+    nonzeroload = [i for (i,l) in ref[:load] if abs(l["pd"]) > 0.0]
+    #nonzeroindices = [i for (i,loads) in ref[:bus_loads] if length(loads) > 0]
+
 
     # Posting model with NL parameters for omega
     m_init = Model(solver = NLsolver)
-    jm, const_refs, var_refs = post_ac_opf_withref_uncertainty(network_data,m_init)
+    jm, const_refs, var_refs, nl_refs = post_ac_opf_withref_uncertainty(network_data,m_init)
 
     # Constructing distribution for samples
-    sigma = 0.1
-    load = [ref[:bus][i]["pd"] for i in nonzeroindices]
+    #sigma = 0.03
+    load = [l["pd"] for (i,l) in ref[:load] if abs(l["pd"]) > 0.0]
     w = Distributions.MvNormal(
-        zeros(length(ref[:bus])),
-        diagm((sigma*load).^2)
+        zeros(length(load)),
+        diagm((sigma*abs.(load)).^2)
     )
 
     # Run OPF to get active sets
-    for i = 1:m+W
-        # 1. Generate sample
-        w_sample = rand(w,1)
-        # 2. Fix NL parameters
-        for j in keys(ref[:bus])
-            setvalue(nl_refs["u"][j], w_sample[j])
+    active_rows = Set{Vector{Int}}()
+    active_cols_upper = Set{Vector{Int}}()
+    active_cols_lower = Set{Vector{Int}}()
+
+    dict_active_rows = Dict{Vector{Int}, Int}()
+    dict_active_cols_upper = Dict{Vector{Int}, Int}()
+    dict_active_cols_lower = Dict{Vector{Int}, Int}()
+
+    observed_active_sets = Set{Int}()
+    all_active_sets = Set{Tuple{Int,Int,Int}}()
+    active_sets = Tuple{Int,Int,Int}[]
+    active_index = Dict{Tuple{Int,Int,Int}, Int}()
+
+    observedsets = Set{Int}()
+    windowcount = Dict{Int,Int}() # active set index => # of times it appears in the window
+    q = DataStructures.Queue(Int)
+
+    #scenario = Dict{String,Any}[]
+    scenario_realization = Matrix{Float64}[]
+    scenario_active_set = Int[]
+
+    # Initialization
+
+    ProgressMeter.@showprogress 1 for i = 1:(Minitial+W)#:m+W
+
+        w_sample = Array{Float64}
+
+        for nthtry=1:100
+            # 1. Generate sample
+            w_sample = rand(w,1)
+            # 2. Fix NL parameters
+            for (k,j) in enumerate(nonzeroload)
+                setvalue(nl_refs["u"][j], w_sample[k])
+            end
+            # 3. Solve problem
+            status = solve(jm)
+            if status == :Optimal
+                if nthtry > 1
+                    println("It took $nthtry tries to solve the problem")
+                end
+                break
+            else
+                infeasible_samples = infeasible_samples + 1
+            end
         end
         # 3. Get active set
-        active_set[i] = find_active_set(jm, const_refs, var_refs, tol)
+        active_set = find_active_set(jm, const_refs, var_refs, tol)
+
         # 4. Create a simplified marker for the active set (similar to scenarios.whichbasis)
 
-    end
-
-    # WRITE SOME FUNCTION FOR THIS
-
-    # find unique basis in M
-    uniqueM = unique(scenarios.whichbasis[1:m,:],1)
-    K_M = size(uniqueM,1)
-    # determine which samples in W correspond to already observed basis
-    basisW = scenarios.whichbasis[m+1:m+W,:]
-    observed = [sum([basisW[k,:]==uniqueM[j,:] for j in 1:size(uniqueM,1)]) for k in 1:size(basisW,1)]
-    # calculate rate of discovery
-    R_MW = (W - sum(observed))/W
-
-    for m=Mmin+1:length(scenarios.whichbasis[:,1])-W_max
-        # Calculate window size
-        Wold = W
-        W = WindowSize(delta, epsilon, gamma, m)
-
-        # Calculate number of new samples
-        Nnew = W - Wold + 1
-
-        for i = 1:Nnew
-            # calculate new active sets
+        # If a new active row or column is observed, add them to the set and create a new index
+        if !in(active_set["active_rows"], active_rows)
+            push!(active_rows, active_set["active_rows"])
+            dict_active_rows[active_set["active_rows"]] = length(active_rows)
+        end
+        if !in(active_set["active_cols_upper"], active_cols_upper)
+            push!(active_cols_upper, active_set["active_cols_upper"])
+            dict_active_cols_upper[active_set["active_cols_upper"]] = length(active_cols_upper)
+        end
+        if !in(active_set["active_cols_lower"], active_cols_lower)
+            push!(active_cols_lower, active_set["active_cols_lower"])
+            dict_active_cols_lower[active_set["active_cols_lower"]] = length(active_cols_lower)
         end
 
-        # Update the set of unique basis
-        uniqueM = unique([uniqueM; scenarios.whichbasis[m,:]'],1)
-        K_Mold = K_M
-        K_M = size(uniqueM,1)
+        # Put together the marker for the active set discovered now
+        new_active_set = (
+            dict_active_rows[active_set["active_rows"]],
+            dict_active_cols_upper[active_set["active_cols_upper"]],
+            dict_active_cols_lower[active_set["active_cols_lower"]]
+        )
 
-        # Update the basis which have been observed in window W
-        if K_Mold == K_M # No new basis observed
-            # Check if new samples have been observed
-            basisNew = scenarios.whichbasis[Wold+1:Wold+Nnew,:]
-            observedNew = [sum([basisNew[k,:]==uniqueM[j,:] for j in 1:size(uniqueM,1)]) for k in 1:size(basisNew,1)]
-            # Construct new observed vector
-            observed = [observed[2:end]; observedNew]
-        else # New basis observed
-            # Check if new samples have been observed
-            basisNew = scenarios.whichbasis[Wold+1:Wold+Nnew,:]
-            observedNew = [sum([basisNew[k,:]==uniqueM[j,:] for j in 1:size(uniqueM,1)]) for k in 1:size(basisNew,1)]
-            # Update the observed vector
-            for i=1:length(observed)
-                if observed[i] == 0 # Only check if previously unobserved
-                    observed[i] = sum([scenarios.whichbasis[m-1+i,:]==uniqueM[j,:] for j in 1:size(uniqueM,1)])
-                end
+        # If the current active set has not been discovered
+        if !in(new_active_set, all_active_sets)
+            push!(all_active_sets, new_active_set)  # add the new active set to the (unordered) SET of discovered active sets
+            push!(active_sets, new_active_set)      # add the new active set to the (ordered) VECTORS of active sets
+            active_index[new_active_set] = length(active_sets)  # make a new index for the new active set
+        end
+
+        # Add the active set to the queue (the list of all active sets)
+        DataStructures.enqueue!(q, active_index[new_active_set])
+
+        push!(scenario_active_set, active_index[new_active_set])
+        push!(scenario_realization, w_sample)
+
+        #push!(scenario, Dict{String,Any}("realization"=>w_sample, "active_set"=>active_index[new_active_set])))
+
+        # Update the count of how frequently the active sets appear in the queue
+        windowcount[active_index[new_active_set]] = get(windowcount, active_index[new_active_set], 0) + 1
+    end
+
+    for i in 1:Minitial
+        curr_active_set = dequeue!(q)                   # remove the sample
+        push!(observed_active_sets, curr_active_set)    # put active set into observed active set
+        windowcount[curr_active_set] -= 1               # update windowcount
+        @assert windowcount[curr_active_set] >= 0
+    end
+
+    # computing rate of discovery
+    numerator = 0
+    denominator = sum(l for (i,l) in windowcount)
+    @assert denominator > 0
+    for (as,v) in windowcount
+        if !in(as, observed_active_sets)
+            numerator += v
+        end
+    end
+    println("rate of discovery: $(numerator / denominator)")
+
+    # Streaming
+
+    M = Minitial;
+    ProgressMeter.@showprogress 1 for j = 1:maxsamples
+        M += 1;
+        Wold = W;
+        W = WindowSize(delta, epsilon, gamma, M)
+
+        k_m=length(observed_active_sets)
+        println("Iteration: $j M: $M W: $W K_M: $k_m")
+
+        # add new samples to W
+        for i = 1:W-Wold+1 #add at least one sample:
+                           #replace the which will be moved in to M,
+                           #plus add new samples to cover an increase in the size of W
+           w_sample = Array{Float64}
+
+           for nthtry=1:100
+               # 1. Generate sample
+               w_sample = rand(w,1)
+               # 2. Fix NL parameters
+               for (k,j) in enumerate(nonzeroload)
+                   setvalue(nl_refs["u"][j], w_sample[k])
+               end
+               # 3. Solve problem
+               status = solve(jm)
+               if status == :Optimal
+                   if nthtry > 1
+                       println("It took $nthtry tries to solve the problem")
+                   end
+                   break
+               else
+                   infeasible_samples = infeasible_samples + 1
+               end
+           end
+
+            # 3. Get active set
+            active_set = find_active_set(jm, const_refs, var_refs, tol)
+
+            # 4. Create a simplified marker for the active set (similar to scenarios.whichbasis)
+
+            # If a new active row or column is observed, add them to the set and create a new index
+            if !in(active_set["active_rows"], active_rows)
+                push!(active_rows, active_set["active_rows"])
+                dict_active_rows[active_set["active_rows"]] = length(active_rows)
             end
-            # Construct new observed vector
-            observed = [observed[2:end]; observedNew]
+            if !in(active_set["active_cols_upper"], active_cols_upper)
+                push!(active_cols_upper, active_set["active_cols_upper"])
+                dict_active_cols_upper[active_set["active_cols_upper"]] = length(active_cols_upper)
+            end
+            if !in(active_set["active_cols_lower"], active_cols_lower)
+                push!(active_cols_lower, active_set["active_cols_lower"])
+                dict_active_cols_lower[active_set["active_cols_lower"]] = length(active_cols_lower)
+            end
+
+            # Put together the marker for the active set discovered now
+            new_active_set = (
+                dict_active_rows[active_set["active_rows"]],
+                dict_active_cols_upper[active_set["active_cols_upper"]],
+                dict_active_cols_lower[active_set["active_cols_lower"]]
+            )
+
+            # If the current active set has not been discovered
+            if !in(new_active_set, all_active_sets)
+                push!(all_active_sets, new_active_set)  # add the new active set to the (unordered) SET of discovered active sets
+                push!(active_sets, new_active_set)      # add the new active set to the (ordered) VECTORS of active sets
+                active_index[new_active_set] = length(active_sets)  # make a new index for the new active set
+            end
+
+            # Add the active set to the queue (the list of all active sets)
+            DataStructures.enqueue!(q, active_index[new_active_set])
+
+            push!(scenario_active_set, active_index[new_active_set])
+            push!(scenario_realization, w_sample)
+
+            # Update the count of how frequently the active sets appear in the queue
+            windowcount[active_index[new_active_set]] = get(windowcount, active_index[new_active_set], 0) + 1
         end
 
-        #observedW = scenarios.whichbasis[m+1+offset:m+W+offset,:]
-        R_MW = (W - sum(observed))/W
+        # pushing one sample from W into M
+        curr_active_set = dequeue!(q)                   # remove the sample
+        push!(observed_active_sets, curr_active_set)    # put active set into observed active set
+        windowcount[curr_active_set] -= 1               # update windowcount
+        @assert windowcount[curr_active_set] >= 0
 
-        #oldBasis = [sum([observedW[k,:]==uniqueM[j,:] for j in 1:K_M]) for k in 1:size(observedW,1)]
+        # computing rate of discovery
+        numerator = 0
+        denominator = sum(l for (i,l) in windowcount)
+        @assert denominator > 0
+        for (as,v) in windowcount
+            if !in(as, observed_active_sets)
+                numerator += v
+            end
+        end
+        RoD = (numerator / denominator)
+        println("rate of discovery: $(numerator / denominator)")
+        println()
 
-        #R_MW = (W - sum(oldBasis))/W
+        if RoD <= threshold
 
-        # iv) decide whether to terminate
-        if R_MW <=R_max
+            K_M = length(observed_active_sets)
 
-            # Check out-of-sample rate of discovery
-            testsize = min(testsize, 50_000 - m - W)
-            testsize = Int(ceil(testsize))
-            observedTest = scenarios.whichbasis[end-testsize:end,:]
-            R_OS = RateOfDiscovery(uniqueM, observedTest, testsize)
+            # Create inverse mapping from the index to the active_rows, etc
+            list_active_rows = Array(Vector{Int}, length(active_rows))
+            list_active_cols_upper = Array(Vector{Int}, length(active_cols_upper))
+            list_active_cols_lower = Array(Vector{Int}, length(active_cols_lower))
+            for (v,i) in dict_active_rows; list_active_rows[i] = v end
+            for (v,i) in dict_active_cols_upper; list_active_cols_upper[i] = v end
+            for (v,i) in dict_active_cols_lower; list_active_cols_lower[i] = v end
 
-            return m, W, R_MW, K_M, R_OS, testsize
+            results = Dict{String,Any}(
+                "alpha" => alpha,
+                "delta" => delta,
+                "epsilon" => epsilon,
+                "gamma" => gamma,
+                "Minitial" => Minitial,
+                "filename" => filename,
+
+                "active_rows" => list_active_rows,
+                "active_cols_upper" => list_active_cols_upper,
+                "active_cols_lower" => list_active_cols_lower,
+
+                "active_sets" => active_sets,
+                "scenario_active_set" => scenario_active_set,
+                "scenario_realization" => scenario_realization,
+
+                "infeasible_samples" => infeasible_samples,
+                "M" => M,
+                "W" => W,
+                "RoD" => RoD,
+                "K_M" => K_M,
+
+                "sigma" => sigma
+            )
+
+            return M, W, RoD, K_M, results
         end
 
-        if m==1000*ceil(m/1000)
-            println(["M=", m])
+        if mod(j,1000)==0
+
+            K_M = length(observed_active_sets)
+
+            # Create inverse mapping from the index to the active_rows, etc
+            list_active_rows = Array(Vector{Int}, length(active_rows))
+            list_active_cols_upper = Array(Vector{Int}, length(active_cols_upper))
+            list_active_cols_lower = Array(Vector{Int}, length(active_cols_lower))
+            for (v,i) in dict_active_rows; list_active_rows[i] = v end
+            for (v,i) in dict_active_cols_upper; list_active_cols_upper[i] = v end
+            for (v,i) in dict_active_cols_lower; list_active_cols_lower[i] = v end
+
+            results = Dict{String,Any}(
+                "alpha" => alpha,
+                "delta" => delta,
+                "epsilon" => epsilon,
+                "gamma" => gamma,
+                "Minitial" => Minitial,
+                "filename" => filename,
+
+                "active_rows" => list_active_rows,
+                "active_cols_upper" => list_active_cols_upper,
+                "active_cols_lower" => list_active_cols_lower,
+
+                "active_sets" => active_sets,
+                "scenario_active_set" => scenario_active_set,
+                "scenario_realization" => scenario_realization,
+
+                "infeasible_samples" => infeasible_samples,
+                "M" => M,
+                "W" => W,
+                "RoD" => RoD,
+                "K_M" => K_M,
+
+                "sigma" => sigma
+            )
+
         end
 
     end
 
-    println()
-    print("Not enough samples available, algorithm did not terminate!")
-    m = 0
-    W = 0
-    R_MW = 0
-    K_M = 0
-    R_OS = 0
-    testsize = 0
-    return m, W, R_MW, K_M, R_OS, testsize
+    println("Not enough samples available, algorithm did not terminate!")
+    K_M = length(observed_active_sets)
+    # Create inverse mapping from the index to the active_rows, etc
+    list_active_rows = Array(Vector{Int}, length(active_rows))
+    list_active_cols_upper = Array(Vector{Int}, length(active_cols_upper))
+    list_active_cols_lower = Array(Vector{Int}, length(active_cols_lower))
+    for (v,i) in dict_active_rows; list_active_rows[i] = v end
+    for (v,i) in dict_active_cols_upper; list_active_cols_upper[i] = v end
+    for (v,i) in dict_active_cols_lower; list_active_cols_lower[i] = v end
+
+    results = Dict{String,Any}(
+        "alpha" => alpha,
+        "delta" => delta,
+        "epsilon" => epsilon,
+        "gamma" => gamma,
+        "Minitial" => Minitial,
+        "filename" => filename,
+
+        "active_rows" => list_active_rows,
+        "active_cols_upper" => list_active_cols_upper,
+        "active_cols_lower" => list_active_cols_lower,
+
+        "active_sets" => active_sets,
+        "scenario_active_set" => scenario_active_set,
+        "scenario_realization" => scenario_realization,
+
+        "infeasible_samples" => infeasible_samples,
+        "M" => M,
+        "W" => W,
+        "RoD" => RoD,
+        "K_M" => K_M,
+        "sigma" => sigma
+    )
+    return M, W, RoD, K_M, results
+
 end
 # ======================================================================

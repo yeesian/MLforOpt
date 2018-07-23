@@ -1,0 +1,17 @@
+#!/bin/bash
+for i in $(seq 1 100)
+do
+   /home/roald/license_server
+   if [ $? -eq 0 ]
+   then
+      echo "successfully obtained license"
+      break
+   else
+      echo "retry $i"
+   fi
+   sleep 3
+done
+echo "failed to connect to server"
+
+
+srun julia Run_ACnormal_parallell.jl $1

@@ -73,7 +73,7 @@ Outputs:\\
 R_MW - rate of discovery where algorithm terminates
 """
 
-function StoppingCriterion(alpha, delta)
+function StoppingCriterion(alpha, epsilon)
 
     R_MW = alpha - epsilon
 
@@ -136,10 +136,11 @@ end
 Generate independent uniform samples based on load
 """
 function UniformSamples(stddev, data)
-    wsamples
+    wsamples = []
     for (i,bus) in ref[:bus]
         bus_std[i] = stddev*bus["Pd"]
         wsamples[i] = rand(Uniform(-3*bus_std[i], 3*bus_std[i]), nsamples)
     end
 
-return wsamples
+    return wsamples
+end
