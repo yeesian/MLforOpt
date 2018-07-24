@@ -157,13 +157,13 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
     # Streaming
 
     M = Minitial;
-    ProgressMeter.@showprogress 1 for j = 1:maxsamples
+    ProgressMeter.@showprogress 1 for jiter = 1:maxsamples
         M += 1;
         Wold = W;
         W = WindowSize(delta, epsilon, gamma, M)
 
         k_m=length(observed_active_sets)
-        println("Iteration: $j M: $M W: $W K_M: $k_m")
+        println("Iteration: $jiter M: $M W: $W K_M: $k_m")
 
         # add new samples to W
         for i = 1:W-Wold+1 #add at least one sample:
@@ -292,7 +292,9 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
             return M, W, RoD, K_M, results
         end
 
-        if mod(j,1000)==0
+        if mod(jiter,1000)==0
+
+            println("Printing intermediate results at iteration $j")
 
             K_M = length(observed_active_sets)
 
@@ -328,6 +330,8 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
 
                 "sigma" => sigma
             )
+
+            JLD.save("$(network_data["name"])_iteration$j.jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
 
         end
 
