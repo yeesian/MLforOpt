@@ -154,6 +154,14 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
    end
    println("rate of discovery: $(numerator / denominator)")
 
+   # Computing the set of all active constraints that have been discovered
+   # - compute the union of all active constraints inside the observed_active_sets
+   # - for each active set in the window which has not yet been discovered:
+   # -> Check if the active constraints are a subset of the active constraints within the observed active sets
+   # -> If it is a subset: Mark as "discovered"
+   # -> If it is not a subset: Leave as "undiscovered"
+   # - Compute rate of discovery of active sets that have new active constraints
+
    # Streaming
 
    M = Minitial;
