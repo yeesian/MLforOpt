@@ -280,6 +280,8 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
                 "scenario_active_set" => scenario_active_set,
                 "scenario_realization" => scenario_realization,
 
+                "observed_active_sets" => observed_active_sets,
+
                 "infeasible_samples" => infeasible_samples,
                 "M" => M,
                 "W" => W,
@@ -322,6 +324,8 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
                 "scenario_active_set" => scenario_active_set,
                 "scenario_realization" => scenario_realization,
 
+                "observed_active_sets" => observed_active_sets,
+
                 "infeasible_samples" => infeasible_samples,
                 "M" => M,
                 "W" => W,
@@ -362,6 +366,8 @@ function RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filenam
         "active_sets" => active_sets,
         "scenario_active_set" => scenario_active_set,
         "scenario_realization" => scenario_realization,
+
+        "observed_active_sets" => observed_active_sets,
 
         "infeasible_samples" => infeasible_samples,
         "M" => M,
