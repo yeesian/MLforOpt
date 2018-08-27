@@ -14,4 +14,4 @@ done
 echo "failed to connect to server"
 
 
-srun julia Run_ACnormal_parallell.jl $1
+srun julia Run_AC_allRoD_parallell.jl $1
