@@ -1,7 +1,10 @@
 # ======================================================================
 
 """
-Run learning algorithm as a streaming algorithm for a given system and pre-computed set of samples
+Run learning algorithm as a streaming algorithm for a given system and pre-computed set of samples,
+using rate of discovery of active sets as the stopping criterion (as it is the most conservative one),
+but also recording rate of discovery for all the other quantities:
+New active sets, new active constraints, new active rows, new acitve columns (upper and lower)
 
 Inputs:\\
 alpha   - maximum unobserved mass \\
@@ -12,7 +15,7 @@ gamma   - constant > 1\\
 Outputs:\\
 """
 
-function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver; maxsamples = 50000, tol = 1e-5, sigma=0.03)
+function RunStreamingAlgorithmAC_AllRoD(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver; maxsamples = 50000, tol = 1e-5, sigma=0.03)
 
    # Keeping track of infeasible samples
    infeasible_samples = 0
@@ -66,6 +69,9 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
    #scenario = Dict{String,Any}[]
    scenario_realization = Matrix{Float64}[]
    scenario_active_set = Int[]
+
+   iteration_RoD_sets = Float64[]
+   iteration_RoD_constraints = Float64[]
 
    # Initialization
 
@@ -152,7 +158,10 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
            numerator += v
        end
    end
-   println("rate of discovery: $(numerator / denominator)")
+
+   RoD = (numerator / denominator)
+   println("rate of discovery: $(RoD)")
+   push!(iteration_RoD_sets, RoD)
 
 
 
@@ -273,17 +282,18 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
    #println(observed_active_constraints)
 
    # computing rate of discovery
-   numerator = 0
-   denominator = sum(l for (i,l) in windowcount)
-   @assert denominator > 0
+   numerator_constr = 0
+   denominator_constr = sum(l for (i,l) in windowcount)
+   @assert denominator_constr > 0
    for (as,v) in windowcount
        if !in(as, observed_active_constraints)
-           numerator += v
+           numerator_constr += v
        end
    end
-   println("rate of discovery of new constraints: $(numerator / denominator)")
 
-   RoD_Constraint = numerator/denominator
+   RoD_Constraint = numerator_constr/denominator_constr
+   println("rate of discovery of new constraints: $(RoD_Constraint)")
+   push!(iteration_RoD_constraints, RoD_Constraint)
 
    k_m=length(observed_active_sets)
    println("Iteration: 0 M: $Minitial W: $W K_M: $k_m")
@@ -387,14 +397,14 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
        end
        RoD = (numerator / denominator)
 
-       println("rate of discovery: $(numerator / denominator)")
+       println("rate of discovery: $(RoD)")
 
+       push!(iteration_RoD_sets, RoD)
 
 
 
        # Updating the datastructures (this is very unelegant)
        if length(active_rows) > length(list_active_rows)
-           #for (v,i) in dict_active_rows; list_active_rows[i] = v end
            for ind_over = length(list_active_rows)+1:length(active_rows)
                for (v,i) in dict_active_rows
                    if i == ind_over
@@ -404,9 +414,14 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
                    end
                end
            end
+           #for (v,i) in dict_active_rows; list_active_rows[i] = v end
+           # old_length = length(list_active_rows)
            # for (v,i) in dict_active_rows
-           #     if i>length(list_active_rows)
-           #         push!(list_active_rows, v)
+           #     if i>old_length
+           #         println("Old length of collection: $(length(list_active_cols_upper))")
+           #         println("Pushing into collection element $i")
+           #         #push!(list_active_rows, v)
+           #         list_active_rows[i]=v
            #     end
            # end
            newentry=length(active_rows)-length(discovered_rows)
@@ -415,6 +430,7 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
            end
            @assert(length(list_active_rows)==length(discovered_rows))
        end
+
        if length(active_cols_upper) > length(list_active_cols_upper)
            println("size of collection: $(length(list_active_cols_upper))")
            println("size of dict: $(length(dict_active_cols_upper))")
@@ -428,9 +444,15 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
                    end
                end
            end
+           # old_length = length(list_active_cols_upper)
            # for (v,i) in dict_active_cols_upper
-           #     if i>length(list_active_cols_upper)
-           #         push!(list_active_cols_upper, v)
+           #     println("for element $i, is i>length(list_active_cols_upper)? $(i>length(list_active_cols_upper)) ")
+           #     if i>old_length
+           #         println("Old length of collection: $(length(list_active_cols_upper))")
+           #         println("Pushing into collection element $i")
+           #         #push!(list_active_cols_upper, v)
+           #         list_active_cols_upper[i]=v
+           #         println("New length of collection: $(length(list_active_cols_upper))")
            #     end
            # end
            newentry=length(active_cols_upper)-length(discovered_cols_upper)
@@ -442,8 +464,8 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
            println("size of discovered vector: $(length(discovered_cols_upper))")
            @assert(length(list_active_cols_upper)==length(discovered_cols_upper))
        end
+
        if length(active_cols_lower) > length(list_active_cols_lower)
-           #for (v,i) in dict_active_cols_lower; list_active_cols_lower[i] = v end
            for ind_over = length(list_active_cols_lower)+1:length(active_cols_lower)
                for (v,i) in dict_active_cols_lower
                    if i == ind_over
@@ -453,9 +475,15 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
                    end
                end
            end
+           #for (v,i) in dict_active_cols_lower; list_active_cols_lower[i] = v end
+           # old_length = length(list_active_cols_lower)
            # for (v,i) in dict_active_cols_lower
-           #     if i>length(list_active_cols_lower)
-           #         push!(list_active_cols_lower, v)
+           #     if i>old_length
+           #         println("Old length of collection: $(length(list_active_cols_lower))")
+           #         println("Pushing into collection element $i")
+           #         #push!(list_active_cols_lower, v)
+           #         list_active_cols_lower[i]=v
+           #         println("New length of collection: $(length(list_active_cols_lower))")
            #     end
            # end
            newentry = length(active_cols_lower)-length(discovered_cols_lower)
@@ -554,34 +582,34 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
        println(observed_active_constraints)
 
        # computing rate of discovery
-       numerator = 0
-       denominator = sum(l for (i,l) in windowcount)
-       @assert denominator > 0
+       numerator_constr = 0
+       denominator_constr = sum(l for (i,l) in windowcount)
+       @assert denominator_constr > 0
        for (as,v) in windowcount
            if !in(as, observed_active_constraints)
-               numerator += v
+               numerator_constr += v
            end
        end
-       println("rate of discovery of new constraints: $(numerator / denominator)")
 
-       RoD_Constraint = numerator/denominator
-
+       RoD_Constraint = numerator_constr/denominator_constr
+       println("rate of discovery of new constraints: $(RoD_Constraint)")
+       push!(iteration_RoD_constraints, RoD_Constraint)
 
        println()
 
 
 
-       if RoD_Constraint <= threshold
+       if RoD <= threshold
 
            K_M = length(observed_active_sets)
 
-           # Create inverse mapping from the index to the active_rows, etc
-           list_active_rows = Array{Vector{Int}}(length(active_rows))
-           list_active_cols_upper = Array{Vector{Int}}(length(active_cols_upper))
-           list_active_cols_lower = Array{Vector{Int}}(length(active_cols_lower))
-           for (v,i) in dict_active_rows; list_active_rows[i] = v end
-           for (v,i) in dict_active_cols_upper; list_active_cols_upper[i] = v end
-           for (v,i) in dict_active_cols_lower; list_active_cols_lower[i] = v end
+           # # Create inverse mapping from the index to the active_rows, etc
+           # list_active_rows = Array{Vector{Int}}(length(active_rows))
+           # list_active_cols_upper = Array{Vector{Int}}(length(active_cols_upper))
+           # list_active_cols_lower = Array{Vector{Int}}(length(active_cols_lower))
+           # for (v,i) in dict_active_rows; list_active_rows[i] = v end
+           # for (v,i) in dict_active_cols_upper; list_active_cols_upper[i] = v end
+           # for (v,i) in dict_active_cols_lower; list_active_cols_lower[i] = v end
 
            results = Dict{String,Any}(
                "alpha" => alpha,
@@ -618,7 +646,10 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
                "set_active_cols_lower" => set_active_cols_lower,
                "set_active_cols_upper" => set_active_cols_upper,
 
-               "RoD_Constraint" => RoD_Constraint
+               "RoD_Constraint" => RoD_Constraint,
+
+               "iteration_RoD_sets" => iteration_RoD_sets,
+               "iteration_RoD_constraints" => iteration_RoD_constraints
            )
 
            return M, W, RoD, K_M, results
@@ -630,13 +661,13 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
 
            K_M = length(observed_active_sets)
 
-           # Create inverse mapping from the index to the active_rows, etc
-           list_active_rows = Array{Vector{Int}}(length(active_rows))
-           list_active_cols_upper = Array{Vector{Int}}(length(active_cols_upper))
-           list_active_cols_lower = Array{Vector{Int}}(length(active_cols_lower))
-           for (v,i) in dict_active_rows; list_active_rows[i] = v end
-           for (v,i) in dict_active_cols_upper; list_active_cols_upper[i] = v end
-           for (v,i) in dict_active_cols_lower; list_active_cols_lower[i] = v end
+           # # Create inverse mapping from the index to the active_rows, etc
+           # list_active_rows = Array{Vector{Int}}(length(active_rows))
+           # list_active_cols_upper = Array{Vector{Int}}(length(active_cols_upper))
+           # list_active_cols_lower = Array{Vector{Int}}(length(active_cols_lower))
+           # for (v,i) in dict_active_rows; list_active_rows[i] = v end
+           # for (v,i) in dict_active_cols_upper; list_active_cols_upper[i] = v end
+           # for (v,i) in dict_active_cols_lower; list_active_cols_lower[i] = v end
 
            results = Dict{String,Any}(
                "alpha" => alpha,
@@ -673,10 +704,13 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
                "set_active_cols_lower" => set_active_cols_lower,
                "set_active_cols_upper" => set_active_cols_upper,
 
-               "RoD_Constraint" => RoD_Constraint
+               "RoD_Constraint" => RoD_Constraint,
+
+               "iteration_RoD_sets" => iteration_RoD_sets,
+               "iteration_RoD_constraints" => iteration_RoD_constraints
            )
 
-           JLD.save("$(network_data["name"])_iteration$j.jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
+           JLD.save("intermediate_results/$(network_data["name"])_iteration$j.jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
 
        end
 
@@ -726,7 +760,10 @@ function RunStreamingAlgorithmAC_ActiveConstraints(alpha, delta, epsilon, gamma,
        "set_active_cols_lower" => set_active_cols_lower,
        "set_active_cols_upper" => set_active_cols_upper,
 
-       "RoD_Constraint" => RoD_Constraint
+       "RoD_Constraint" => RoD_Constraint,
+
+       "iteration_RoD_sets" => iteration_RoD_sets,
+       "iteration_RoD_constraints" => iteration_RoD_constraints
    )
    return M, W, RoD, K_M, results
 
