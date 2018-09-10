@@ -14,6 +14,7 @@ filename = ARGS[1]
 
 print("Working on $filename: ")
 data_file = string("pglib-opf/pglib_opf_", filename, ".m")
+print("data_file = ", data_file)
 #data_file = string(Pkg.dir(),"/OPFRecourse/test/data/pglib-opf/pglib_opf_", f, ".m")
 
 include("find_active_set.jl")
