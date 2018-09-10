@@ -10,10 +10,10 @@ using JLD
 
 
 # Running over OPF Benchmark Cases
-f = ARGS[1]
+filename = ARGS[1]
 
 print("Working on $f: ")
-data_file = string("pglib-opf/pglib_opf_", f, ".m")
+data_file = string("pglib-opf/pglib_opf_", filename, ".m")
 #data_file = string(Pkg.dir(),"/OPFRecourse/test/data/pglib-opf/pglib_opf_", f, ".m")
 
 include("find_active_set.jl")
