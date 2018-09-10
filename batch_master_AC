@@ -7,7 +7,14 @@ mkdir output_AC_allRoD_180825
 mkdir results_AC_allRoD_180825
 mkdir intermediate_results
 
+
 for f in $filename
    do
-      sbatch --job-name=$f --qos=scavenge --time=7-00:00:00 --partition=scaling --output=output_AC_allRoD_180825/$f.out ./run_tests_ACparallel $f
+      sbatch --job-name=$f --partition=scaling --output=output_AC_allRoD_180825/$f.out ./run_tests_ACparallel $f
    done
+
+
+#for f in $filename
+#   do
+#      sbatch --job-name=$f --time=7-00:00:00 --partition=scaling --output=output_AC_allRoD_180825/$f.out ./run_tests_ACparallel $f
+#   done

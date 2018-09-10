@@ -1,0 +1,137 @@
+successfully obtained license
+failed to connect to server
+Working on case240_pserc: data_file = pglib-opf/pglib_opf_case240_pserc.m[warn | PowerModels]: the voltage setpoint on generator 32 does not match the value at bus 2438
+[warn | PowerModels]: the voltage setpoint on generator 29 does not match the value at bus 2438
+[warn | PowerModels]: the voltage setpoint on generator 1 does not match the value at bus 1032
+[warn | PowerModels]: the voltage setpoint on generator 78 does not match the value at bus 4031
+[warn | PowerModels]: the voltage setpoint on generator 81 does not match the value at bus 4031
+[warn | PowerModels]: the voltage setpoint on generator 101 does not match the value at bus 5031
+[warn | PowerModels]: the voltage setpoint on generator 2 does not match the value at bus 1032
+[warn | PowerModels]: the voltage setpoint on generator 105 does not match the value at bus 5032
+[warn | PowerModels]: the voltage setpoint on generator 109 does not match the value at bus 6132
+[warn | PowerModels]: the voltage setpoint on generator 74 does not match the value at bus 3933
+[warn | PowerModels]: the voltage setpoint on generator 41 does not match the value at bus 2637
+[warn | PowerModels]: the voltage setpoint on generator 65 does not match the value at bus 3836
+[warn | PowerModels]: the voltage setpoint on generator 106 does not match the value at bus 5032
+[warn | PowerModels]: the voltage setpoint on generator 119 does not match the value at bus 6335
+[warn | PowerModels]: the voltage setpoint on generator 27 does not match the value at bus 2233
+[warn | PowerModels]: the voltage setpoint on generator 75 does not match the value at bus 4039
+[warn | PowerModels]: the voltage setpoint on generator 42 does not match the value at bus 2638
+[warn | PowerModels]: the voltage setpoint on generator 33 does not match the value at bus 2438
+[warn | PowerModels]: the voltage setpoint on generator 28 does not match the value at bus 2332
+[warn | PowerModels]: the voltage setpoint on generator 50 does not match the value at bus 3234
+[warn | PowerModels]: the voltage setpoint on generator 111 does not match the value at bus 6132
+[warn | PowerModels]: the voltage setpoint on generator 63 does not match the value at bus 3835
+[warn | PowerModels]: the voltage setpoint on generator 121 does not match the value at bus 6335
+[warn | PowerModels]: the voltage setpoint on generator 115 does not match the value at bus 6235
+[warn | PowerModels]: the voltage setpoint on generator 141 does not match the value at bus 8033
+[warn | PowerModels]: the voltage setpoint on generator 92 does not match the value at bus 4132
+[warn | PowerModels]: the voltage setpoint on generator 88 does not match the value at bus 4132
+[warn | PowerModels]: the voltage setpoint on generator 93 does not match the value at bus 4231
+[warn | PowerModels]: the voltage setpoint on generator 26 does not match the value at bus 2233
+[warn | PowerModels]: the voltage setpoint on generator 10 does not match the value at bus 1232
+[warn | PowerModels]: the voltage setpoint on generator 120 does not match the value at bus 6335
+[warn | PowerModels]: the voltage setpoint on generator 77 does not match the value at bus 4039
+[warn | PowerModels]: the voltage setpoint on generator 24 does not match the value at bus 2130
+[warn | PowerModels]: the voltage setpoint on generator 87 does not match the value at bus 4131
+[warn | PowerModels]: the voltage setpoint on generator 117 does not match the value at bus 6333
+[warn | PowerModels]: the voltage setpoint on generator 25 does not match the value at bus 2233
+[warn | PowerModels]: the voltage setpoint on generator 114 does not match the value at bus 6235
+[warn | PowerModels]: the voltage setpoint on generator 23 does not match the value at bus 2130
+[warn | PowerModels]: the voltage setpoint on generator 49 does not match the value at bus 3234
+[warn | PowerModels]: the voltage setpoint on generator 59 does not match the value at bus 3631
+[warn | PowerModels]: the voltage setpoint on generator 5 does not match the value at bus 1034
+[warn | PowerModels]: the voltage setpoint on generator 31 does not match the value at bus 2438
+[warn | PowerModels]: the voltage setpoint on generator 89 does not match the value at bus 4132
+[warn | PowerModels]: the voltage setpoint on generator 62 does not match the value at bus 3831
+[warn | PowerModels]: the voltage setpoint on generator 122 does not match the value at bus 6433
+[warn | PowerModels]: the voltage setpoint on generator 90 does not match the value at bus 4132
+[warn | PowerModels]: the voltage setpoint on generator 39 does not match the value at bus 2631
+[warn | PowerModels]: the voltage setpoint on generator 112 does not match the value at bus 6231
+[warn | PowerModels]: the voltage setpoint on generator 34 does not match the value at bus 2438
+[warn | PowerModels]: the voltage setpoint on generator 129 does not match the value at bus 6533
+[warn | PowerModels]: the voltage setpoint on generator 137 does not match the value at bus 7032
+[warn | PowerModels]: the voltage setpoint on generator 94 does not match the value at bus 4231
+[warn | PowerModels]: the voltage setpoint on generator 86 does not match the value at bus 4131
+[warn | PowerModels]: the voltage setpoint on generator 126 does not match the value at bus 6433
+[warn | PowerModels]: the voltage setpoint on generator 17 does not match the value at bus 1431
+[warn | PowerModels]: the voltage setpoint on generator 99 does not match the value at bus 4232
+[warn | PowerModels]: the voltage setpoint on generator 71 does not match the value at bus 3933
+[warn | PowerModels]: the voltage setpoint on generator 37 does not match the value at bus 2533
+[warn | PowerModels]: the voltage setpoint on generator 47 does not match the value at bus 3234
+[warn | PowerModels]: the voltage setpoint on generator 9 does not match the value at bus 1232
+[warn | PowerModels]: the voltage setpoint on generator 73 does not match the value at bus 3933
+[warn | PowerModels]: the voltage setpoint on generator 82 does not match the value at bus 4035
+[warn | PowerModels]: the voltage setpoint on generator 12 does not match the value at bus 1331
+[warn | PowerModels]: the voltage setpoint on generator 79 does not match the value at bus 4031
+[warn | PowerModels]: the voltage setpoint on generator 6 does not match the value at bus 1131
+[warn | PowerModels]: the voltage setpoint on generator 84 does not match the value at bus 4035
+[warn | PowerModels]: the voltage setpoint on generator 80 does not match the value at bus 4031
+[warn | PowerModels]: the voltage setpoint on generator 104 does not match the value at bus 5032
+[warn | PowerModels]: the voltage setpoint on generator 124 does not match the value at bus 6433
+[warn | PowerModels]: the voltage setpoint on generator 125 does not match the value at bus 6433
+[warn | PowerModels]: the voltage setpoint on generator 98 does not match the value at bus 4232
+[warn | PowerModels]: the voltage setpoint on generator 113 does not match the value at bus 6231
+[warn | PowerModels]: the voltage setpoint on generator 110 does not match the value at bus 6132
+[warn | PowerModels]: the voltage setpoint on generator 70 does not match the value at bus 3933
+[warn | PowerModels]: the voltage setpoint on generator 14 does not match the value at bus 1333
+[warn | PowerModels]: the voltage setpoint on generator 127 does not match the value at bus 6533
+[warn | PowerModels]: the voltage setpoint on generator 7 does not match the value at bus 1131
+[warn | PowerModels]: the voltage setpoint on generator 96 does not match the value at bus 4231
+[warn | PowerModels]: the voltage setpoint on generator 123 does not match the value at bus 6433
+[warn | PowerModels]: the voltage setpoint on generator 8 does not match the value at bus 1131
+[warn | PowerModels]: the voltage setpoint on generator 140 does not match the value at bus 7032
+[warn | PowerModels]: the voltage setpoint on generator 64 does not match the value at bus 3835
+[warn | PowerModels]: the voltage setpoint on generator 91 does not match the value at bus 4132
+[warn | PowerModels]: the voltage setpoint on generator 107 does not match the value at bus 6132
+[warn | PowerModels]: the voltage setpoint on generator 102 does not match the value at bus 5032
+[warn | PowerModels]: the voltage setpoint on generator 69 does not match the value at bus 3933
+[warn | PowerModels]: the voltage setpoint on generator 60 does not match the value at bus 3631
+[warn | PowerModels]: the voltage setpoint on generator 97 does not match the value at bus 4232
+[warn | PowerModels]: the voltage setpoint on generator 4 does not match the value at bus 1034
+[warn | PowerModels]: the voltage setpoint on generator 130 does not match the value at bus 6533
+[warn | PowerModels]: the voltage setpoint on generator 22 does not match the value at bus 2130
+[warn | PowerModels]: the voltage setpoint on generator 11 does not match the value at bus 1331
+[warn | PowerModels]: the voltage setpoint on generator 35 does not match the value at bus 2438
+[warn | PowerModels]: the voltage setpoint on generator 13 does not match the value at bus 1333
+[warn | PowerModels]: the voltage setpoint on generator 131 does not match the value at bus 6533
+[warn | PowerModels]: the voltage setpoint on generator 15 does not match the value at bus 1333
+[warn | PowerModels]: the voltage setpoint on generator 61 does not match the value at bus 3731
+[warn | PowerModels]: the voltage setpoint on generator 67 does not match the value at bus 3931
+[warn | PowerModels]: the voltage setpoint on generator 108 does not match the value at bus 6132
+[warn | PowerModels]: the voltage setpoint on generator 118 does not match the value at bus 6333
+[warn | PowerModels]: the voltage setpoint on generator 16 does not match the value at bus 1431
+[warn | PowerModels]: the voltage setpoint on generator 100 does not match the value at bus 5031
+[warn | PowerModels]: the voltage setpoint on generator 40 does not match the value at bus 2634
+[warn | PowerModels]: the voltage setpoint on generator 21 does not match the value at bus 2130
+[warn | PowerModels]: the voltage setpoint on generator 38 does not match the value at bus 2630
+[warn | PowerModels]: the voltage setpoint on generator 72 does not match the value at bus 3933
+[warn | PowerModels]: the voltage setpoint on generator 83 does not match the value at bus 4035
+[warn | PowerModels]: the voltage setpoint on generator 116 does not match the value at bus 6235
+[warn | PowerModels]: the voltage setpoint on generator 128 does not match the value at bus 6533
+[warn | PowerModels]: the voltage setpoint on generator 139 does not match the value at bus 7032
+[warn | PowerModels]: the voltage setpoint on generator 36 does not match the value at bus 2438
+[warn | PowerModels]: the voltage setpoint on generator 66 does not match the value at bus 3931
+[warn | PowerModels]: the voltage setpoint on generator 76 does not match the value at bus 4039
+[warn | PowerModels]: the voltage setpoint on generator 95 does not match the value at bus 4231
+[warn | PowerModels]: the voltage setpoint on generator 138 does not match the value at bus 7032
+[warn | PowerModels]: the voltage setpoint on generator 85 does not match the value at bus 4035
+[warn | PowerModels]: the voltage setpoint on generator 48 does not match the value at bus 3234
+[warn | PowerModels]: the voltage setpoint on generator 18 does not match the value at bus 1431
+[warn | PowerModels]: the voltage setpoint on generator 103 does not match the value at bus 5032
+[warn | PowerModels]: the voltage setpoint on generator 30 does not match the value at bus 2438
+[warn | PowerModels]: the voltage setpoint on generator 3 does not match the value at bus 1034
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit http://projects.coin-or.org/Ipopt
+******************************************************************************
+
+Progress:   0%|                                         |  ETA: 20:42:01[KProgress:   0%|                                         |  ETA: 12:59:44[KProgress:   0%|                                         |  ETA: 7:19:42[KProgress:   0%|                                         |  ETA: 6:34:10[KProgress:   0%|                                         |  ETA: 5:58:52[KProgress:   0%|                                         |  ETA: 5:12:53[KProgress:   0%|                                         |  ETA: 4:31:18[KProgress:   0%|                                         |  ETA: 4:59:04[KProgress:   0%|                                         |  ETA: 4:30:16[KProgress:   0%|                                         |  ETA: 4:05:26[KProgress:   0%|                                         |  ETA: 3:59:48[KProgress:   0%|                                         |  ETA: 3:59:21[KProgress:   0%|                                         |  ETA: 3:44:47[KProgress:   0%|                                         |  ETA: 3:25:39[KProgress:   0%|                                         |  ETA: 3:19:53[KProgress:   0%|                                         |  ETA: 3:11:44[KProgress:   0%|                                         |  ETA: 3:21:22[KProgress:   0%|                                         |  ETA: 3:17:47[KWARNING: Not solved to optimality, status: Infeasible
+WARNING: Not solved to optimality, status: UserLimit
+It took 3 tries to solve the problem
+Progress:   0%|                                         |  ETA: 14:15:44[KWARNING: Not solved to optimality, status: Infeasible
+It took 2 tries to solve the problem
+Progress:   0%|                                         |  ETA: 15:09:57[KProgress:   0%|                                         |  ETA: 14:33:41[KWARNING: Not solved to optimality, status: UserLimit
+It took 2 tries to solve the problem

@@ -1,0 +1,78 @@
+successfully obtained license
+failed to connect to server
+Working on case300_ieee: data_file = pglib-opf/pglib_opf_case300_ieee.m[warn | PowerModels]: the voltage setpoint on generator 32 does not match the value at bus 198
+[warn | PowerModels]: the voltage setpoint on generator 29 does not match the value at bus 187
+[warn | PowerModels]: the voltage setpoint on generator 1 does not match the value at bus 8
+[warn | PowerModels]: the voltage setpoint on generator 54 does not match the value at bus 7039
+[warn | PowerModels]: the voltage setpoint on generator 2 does not match the value at bus 10
+[warn | PowerModels]: the voltage setpoint on generator 41 does not match the value at bus 238
+[warn | PowerModels]: the voltage setpoint on generator 65 does not match the value at bus 9002
+[warn | PowerModels]: the voltage setpoint on generator 51 does not match the value at bus 7017
+[warn | PowerModels]: the voltage setpoint on generator 53 does not match the value at bus 7024
+[warn | PowerModels]: the voltage setpoint on generator 27 does not match the value at bus 185
+[warn | PowerModels]: the voltage setpoint on generator 33 does not match the value at bus 213
+[warn | PowerModels]: the voltage setpoint on generator 28 does not match the value at bus 186
+[warn | PowerModels]: the voltage setpoint on generator 50 does not match the value at bus 7012
+[warn | PowerModels]: the voltage setpoint on generator 52 does not match the value at bus 7023
+[warn | PowerModels]: the voltage setpoint on generator 63 does not match the value at bus 7139
+[warn | PowerModels]: the voltage setpoint on generator 26 does not match the value at bus 177
+[warn | PowerModels]: the voltage setpoint on generator 10 does not match the value at bus 108
+[warn | PowerModels]: the voltage setpoint on generator 24 does not match the value at bus 171
+[warn | PowerModels]: the voltage setpoint on generator 58 does not match the value at bus 7057
+[warn | PowerModels]: the voltage setpoint on generator 25 does not match the value at bus 176
+[warn | PowerModels]: the voltage setpoint on generator 23 does not match the value at bus 170
+[warn | PowerModels]: the voltage setpoint on generator 49 does not match the value at bus 7011
+[warn | PowerModels]: the voltage setpoint on generator 59 does not match the value at bus 7061
+[warn | PowerModels]: the voltage setpoint on generator 5 does not match the value at bus 76
+[warn | PowerModels]: the voltage setpoint on generator 31 does not match the value at bus 191
+[warn | PowerModels]: the voltage setpoint on generator 62 does not match the value at bus 7130
+[warn | PowerModels]: the voltage setpoint on generator 43 does not match the value at bus 241
+[warn | PowerModels]: the voltage setpoint on generator 34 does not match the value at bus 220
+[warn | PowerModels]: the voltage setpoint on generator 44 does not match the value at bus 242
+[warn | PowerModels]: the voltage setpoint on generator 55 does not match the value at bus 7044
+[warn | PowerModels]: the voltage setpoint on generator 17 does not match the value at bus 146
+[warn | PowerModels]: the voltage setpoint on generator 47 does not match the value at bus 7002
+[warn | PowerModels]: the voltage setpoint on generator 12 does not match the value at bus 124
+[warn | PowerModels]: the voltage setpoint on generator 20 does not match the value at bus 152
+[warn | PowerModels]: the voltage setpoint on generator 6 does not match the value at bus 84
+[warn | PowerModels]: the voltage setpoint on generator 14 does not match the value at bus 138
+[warn | PowerModels]: the voltage setpoint on generator 7 does not match the value at bus 91
+[warn | PowerModels]: the voltage setpoint on generator 57 does not match the value at bus 7055
+[warn | PowerModels]: the voltage setpoint on generator 8 does not match the value at bus 92
+[warn | PowerModels]: the voltage setpoint on generator 64 does not match the value at bus 7166
+[warn | PowerModels]: the voltage setpoint on generator 19 does not match the value at bus 149
+[warn | PowerModels]: the voltage setpoint on generator 60 does not match the value at bus 7062
+[warn | PowerModels]: the voltage setpoint on generator 4 does not match the value at bus 63
+[warn | PowerModels]: the voltage setpoint on generator 22 does not match the value at bus 156
+[warn | PowerModels]: the voltage setpoint on generator 11 does not match the value at bus 119
+[warn | PowerModels]: the voltage setpoint on generator 13 does not match the value at bus 125
+[warn | PowerModels]: the voltage setpoint on generator 15 does not match the value at bus 141
+[warn | PowerModels]: the voltage setpoint on generator 61 does not match the value at bus 7071
+[warn | PowerModels]: the voltage setpoint on generator 16 does not match the value at bus 143
+[warn | PowerModels]: the voltage setpoint on generator 40 does not match the value at bus 236
+[warn | PowerModels]: the voltage setpoint on generator 21 does not match the value at bus 153
+[warn | PowerModels]: the voltage setpoint on generator 38 does not match the value at bus 230
+[warn | PowerModels]: the voltage setpoint on generator 46 does not match the value at bus 7001
+[warn | PowerModels]: the voltage setpoint on generator 45 does not match the value at bus 243
+[warn | PowerModels]: the voltage setpoint on generator 56 does not match the value at bus 7049
+[warn | PowerModels]: the voltage setpoint on generator 36 does not match the value at bus 222
+[warn | PowerModels]: the voltage setpoint on generator 48 does not match the value at bus 7003
+[warn | PowerModels]: the voltage setpoint on generator 18 does not match the value at bus 147
+[warn | PowerModels]: the voltage setpoint on generator 30 does not match the value at bus 190
+[warn | PowerModels]: the voltage setpoint on generator 3 does not match the value at bus 20
+
+******************************************************************************
+This program contains Ipopt, a library for large-scale nonlinear optimization.
+ Ipopt is released as open source code under the Eclipse Public License (EPL).
+         For more information visit http://projects.coin-or.org/Ipopt
+******************************************************************************
+
+Progress:   0%|                                         |  ETA: 13:36:09[KProgress:   0%|                                         |  ETA: 3:18:50[KProgress:   0%|                                         |  ETA: 2:09:30[KProgress:   0%|                                         |  ETA: 1:42:14[KProgress:   0%|                                         |  ETA: 1:28:03[KProgress:   0%|                                         |  ETA: 1:19:29[KProgress:   0%|                                         |  ETA: 1:13:29[KProgress:   0%|                                         |  ETA: 1:09:09[KProgress:   0%|                                         |  ETA: 1:06:02[KProgress:   0%|                                         |  ETA: 1:03:37[KProgress:   0%|                                         |  ETA: 1:01:51[KProgress:   1%|                                         |  ETA: 1:00:02[KProgress:   1%|                                         |  ETA: 0:58:41[KProgress:   1%|                                         |  ETA: 0:57:20[KProgress:   1%|                                         |  ETA: 0:57:28[KWARNING: Not solved to optimality, status: Infeasible
+It took 2 tries to solve the problem
+Progress:   1%|                                         |  ETA: 3:40:23[KProgress:   1%|                                         |  ETA: 3:28:48[KProgress:   1%|                                         |  ETA: 3:18:33[KProgress:   1%|                                         |  ETA: 3:09:42[KProgress:   1%|                                         |  ETA: 3:01:28[KProgress:   1%|                                         |  ETA: 2:54:18[KProgress:   1%|                                         |  ETA: 2:47:46[KProgress:   1%|                                         |  ETA: 2:41:49[KProgress:   1%|                                         |  ETA: 2:36:21[KProgress:   1%|                                         |  ETA: 2:31:20[KProgress:   1%|                                         |  ETA: 2:26:51[KProgress:   1%|                                         |  ETA: 2:22:41[KProgress:   1%|█                                        |  ETA: 2:18:48[KProgress:   1%|█                                        |  ETA: 2:15:15[KProgress:   1%|█                                        |  ETA: 2:11:52[KProgress:   1%|█                                        |  ETA: 2:08:47[KProgress:   1%|█                                        |  ETA: 2:05:48[KProgress:   1%|█                                        |  ETA: 2:03:03[KProgress:   2%|█                                        |  ETA: 2:00:30[KWARNING: Not solved to optimality, status: Infeasible
+It took 2 tries to solve the problem
+Progress:   2%|█                                        |  ETA: 2:36:21[KProgress:   2%|█                                        |  ETA: 2:32:55[KWARNING: Not solved to optimality, status: UserLimit
+It took 2 tries to solve the problem
+Progress:   2%|█                                        |  ETA: 3:51:10[KProgress:   2%|█                                        |  ETA: 3:45:43[KProgress:   2%|█                                        |  ETA: 3:40:36[KProgress:   2%|█                                        |  ETA: 3:35:41[KWARNING: Not solved to optimality, status: UserLimit
+It took 2 tries to solve the problem
+Progress:   2%|█                                        |  ETA: 4:47:36[KProgress:   2%|█                                        |  ETA: 4:41:15[KProgress:   2%|█                                        |  ETA: 4:35:10[KProgress:   2%|█                                        |  ETA: 4:29:25[KProgress:   2%|█                                        |  ETA: 4:23:54[KProgress:   2%|█                                        |  ETA: 4:18:42[KProgress:   2%|█                                        |  ETA: 4:13:41[KProgress:   2%|█                                        |  ETA: 4:08:55[KProgress:   2%|█                                        |  ETA: 4:04:19[KProgress:   2%|█                                        |  ETA: 3:59:58[KProgress:   2%|█                                        |  ETA: 3:55:46[KProgress:   2%|█                                        |  ETA: 3:51:43[KProgress:   2%|█                                        |  ETA: 3:47:50[KProgress:   2%|█    
