@@ -12,7 +12,7 @@ using JLD
 # Running over OPF Benchmark Cases
 filename = ARGS[1]
 
-print("Working on $f: ")
+print("Working on $filename: ")
 data_file = string("pglib-opf/pglib_opf_", filename, ".m")
 #data_file = string(Pkg.dir(),"/OPFRecourse/test/data/pglib-opf/pglib_opf_", f, ".m")
 
