@@ -34,10 +34,10 @@ Minitial = 1
 
 M, W, RoD, K_M, results = RunStreamingAlgorithmAC_AllRoD(alpha, delta, epsilon, gamma, Minitial, data_file, NLsolver)
 
-JLD.save("results_AC_allRoD_180825/$(f).jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
+JLD.save("results_AC_allRoD_180825/$(filename).jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
 
 println()
-println("!!!!!!!!!!!!!!! FINISHED WORKING ON $f !!!!!!!!!!!!!!!!!!!!")
+println("!!!!!!!!!!!!!!! FINISHED WORKING ON $filename !!!!!!!!!!!!!!!!!!!!")
 println()
 
 #for i=3 #in 1:5
