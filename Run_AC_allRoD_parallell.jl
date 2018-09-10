@@ -32,7 +32,7 @@ epsilon = 0.05
 gamma = 2
 Minitial = 1
 
-M, W, RoD, K_M, results = RunStreamingAlgorithmAC_AllRoD(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver)
+M, W, RoD, K_M, results = RunStreamingAlgorithmAC_AllRoD(alpha, delta, epsilon, gamma, Minitial, data_file, NLsolver)
 
 JLD.save("results_AC_allRoD_180825/$(f).jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
 
