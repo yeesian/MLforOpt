@@ -10,7 +10,7 @@ mkdir intermediate_results
 
 for f in $filename
    do
-      sbatch --job-name=$f --partition=scaling --output=output_AC_allRoD_180825/$f.out ./run_tests_ACparallel $f
+      sbatch --job-name=$f --time=96:00:00 --qos=long --partition=scaling --output=output_AC_allRoD_180825/$f.out ./run_tests_ACparallel $f
    done
 
 
