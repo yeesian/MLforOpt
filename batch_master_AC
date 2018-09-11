@@ -1,7 +1,10 @@
 #!/bin/bash
 
 
-filename='case3_lmbd case5_pjm case14_ieee case24_ieee_rts case30_ieee case39_epri case57_ieee case73_ieee_rts case118_ieee case162_ieee_dtc case200_pserc case240_pserc case300_ieee case1888_rte case1951_rte case2737sop_k case2848_rte case2869_pegase case6468_rte'
+# filename='case3_lmbd case5_pjm case14_ieee case24_ieee_rts case30_ieee case39_epri case57_ieee case73_ieee_rts case118_ieee case162_ieee_dtc case200_pserc case240_pserc case300_ieee case1888_rte case1951_rte case2737sop_k case2848_rte case2869_pegase case6468_rte'
+
+filename='case240_pserc case300_ieee case1888_rte case1951_rte case2737sop_k case2848_rte case2869_pegase case6468_rte'
+
 
 mkdir output_AC_allRoD_180825
 mkdir results_AC_allRoD_180825
@@ -10,7 +13,7 @@ mkdir intermediate_results
 
 for f in $filename
    do
-      sbatch --job-name=$f --time=96:00:00 --qos=long --partition=scaling --output=output_AC_allRoD_180825/$f.out ./run_tests_ACparallel $f
+      sbatch --job-name=$f --time=168:00:00 --qos=long --partition=scaling --output=output_AC_allRoD_180825/$f.out ./run_tests_ACparallel $f
    done
 
 
