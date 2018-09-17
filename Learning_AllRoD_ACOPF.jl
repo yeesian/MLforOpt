@@ -655,7 +655,7 @@ function RunStreamingAlgorithmAC_AllRoD(alpha, delta, epsilon, gamma, Minitial, 
            return M, W, RoD, K_M, results
        end
 
-       if mod(jiter,5000)==0
+       if mod(jiter,100)==0
 
            println("Printing intermediate results at iteration $j")
 
