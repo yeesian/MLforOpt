@@ -657,7 +657,7 @@ function RunStreamingAlgorithmAC_AllRoD(alpha, delta, epsilon, gamma, Minitial, 
 
        if mod(jiter,100)==0
 
-           println("Printing intermediate results at iteration $j")
+           println("Printing intermediate results at iteration $jiter")
 
            K_M = length(observed_active_sets)
 
@@ -710,7 +710,7 @@ function RunStreamingAlgorithmAC_AllRoD(alpha, delta, epsilon, gamma, Minitial, 
                "iteration_RoD_constraints" => iteration_RoD_constraints
            )
 
-           JLD.save("intermediate_results/$(network_data["name"])_iteration$j.jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
+           JLD.save("intermediate_results/$(network_data["name"])_iteration$jiter.jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
 
        end
 
