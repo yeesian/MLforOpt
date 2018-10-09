@@ -11,11 +11,17 @@ mkdir results_AC_allRoD_180825
 mkdir intermediate_results
 
 
+# for f in $filename
+#    do
+#       sbatch --job-name=$f --time=48:00:00 --qos=long --partition=scaling --output=output_AC_allRoD_180825/$f.out ./run_tests_ACparallel $f
+#    done
+
 for f in $filename
    do
-      sbatch --job-name=$f --time=48:00:00 --qos=long --partition=scaling --output=output_AC_allRoD_180825/$f.out ./run_tests_ACparallel $f
+      sbatch --res=sidhant_128 --job-name=$f --time=7-00:00:00 --qos=unlimited --partition=scaling --output=output_AC_allRoD_180825/$f.out ./run_tests_ACparallel $f
    done
 
+# salloc/sbatch --res=sidhant_128 -N 8 -t 7-00:00:00 --qos=unlimited
 
 #for f in $filename
 #   do
