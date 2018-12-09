@@ -10,7 +10,9 @@ using JLD
 include("find_active_set.jl")
 include("basis_policy.jl")
 include("WindowSize.jl")
-include("LearningAlgorithms_ACOPF.jl")
+include("LearningActiveSet_ACOPF.jl")
+include("LearningActiveConstraints_ACOPF.jl")
+include("Learning_AllRoD_ACOPF.jl")
 
 NLsolver = IpoptSolver(print_level=0)
 
@@ -19,6 +21,7 @@ tol = 1e-5
 #filename = "data/nesta_case1397sp_eir.m"
 #filename = "pglib-opf/pglib_opf_case5_pjm.m"
 #filename = "pglib-opf/pglib_opf_case24_ieee_rts.m"
+#filename = "pglib-opf/pglib_opf_case118_ieee.m"
 #filename = "pglib-opf/pglib_opf_case57_ieee.m"
 #filename = "pglib-opf/pglib_opf_case240_pserc.m"
 filename = "pglib-opf/pglib_opf_case300_ieee.m"
@@ -31,22 +34,23 @@ ref = PowerModels.build_ref(network_data)[:nw][0]
 m = Model(solver = NLsolver)
 
 #jm, const_refs, var_refs = post_ac_opf_withref(network_data,m)
-jm, const_refs, var_refs, nl_refs = post_ac_opf_withref_uncertainty(network_data,m)
+#jm, const_refs, var_refs, nl_refs = post_ac_opf_withref_uncertainty(network_data,m)
 
-status = solve(jm)
+#status = solve(jm)
 
 
-alpha = 0.4
-delta = 0.5
-epsilon = 0.18
+alpha = 0.9
+delta = 0.1
+epsilon = 0.4
 gamma = 2
 Minitial = 1
 
-M, W, RoD, K_M, results = RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver)
+M, W, RoD, K_M, results = RunStreamingAlgorithmAC_AllRoD(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver)
 #M, W, RoD, K_M, results = RunStreamingAlgorithmAC(alpha, delta, epsilon, gamma, Minitial, filename)
 
-JLD.save("$(filename).jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
+#JLD.save("$(filename).jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
 
+JLD.save("testing.jld", "results", results, "M", M, "W", W, "RoD", RoD, "K_M", K_M)
 
 
 

@@ -144,3 +144,71 @@ function UniformSamples(stddev, data)
 
     return wsamples
 end
+
+
+# ======================================================================
+
+"""
+Add new constraints to the set of possible active constraints
+
+Inputs: \\
+collections_of_active_constraints   Collections of active constraints for which we want to add missing elements (if any)\\
+set_of_active_indices               Set of already discovered active constraints\\
+
+"""
+
+function add_new_constraints(collections_of_active_constraints, set_of_active_indices)
+    #println("Adding missing constraints")
+    for ind_vec = 1:length(collections_of_active_constraints)
+        #println("Collection number $ind_vec")
+        for ind_con=1:length(collections_of_active_constraints[ind_vec])
+            if !in(collections_of_active_constraints[ind_vec][ind_con], set_of_active_indices)
+                #println("- Discovered new constraint at element $ind_con . Adding this constraint")
+                push!(set_of_active_indices, collections_of_active_constraints[ind_vec][ind_con])
+            #else
+            #    println("Element already discovered")
+            end
+
+        end
+    end
+    return set_of_active_indices
+end
+
+# ======================================================================
+
+"""
+Check discovery status for all of the collections of constraints
+
+Inputs: \\
+collections_of_active_constraints   All collections of active constraints\\
+set_of_active_indices               Set of already discovered active constraints\\
+discovery_status                    Whether or not a particular set of active constraints has been discovered\\
+
+"""
+function check_discovery(collections_of_active_constraints, set_of_active_indices, discovery_status)
+
+    # Checking that the size of the collection has similar dimensions as the discovery status
+    @assert length(collections_of_active_constraints)==length(discovery_status)
+
+    # Updating discovery status
+    for ind_vec = 1:length(collections_of_active_constraints)
+        temporary_var = discovery_status[ind_vec]
+        #println("Collection number $ind_vec")
+        #println("- Discovery status: $temporary_var")
+        if discovery_status[ind_vec] == false
+            discovered = true
+            for ind_con=1:length(collections_of_active_constraints[ind_vec])
+                if !in(collections_of_active_constraints[ind_vec][ind_con], set_of_active_indices)
+                    #println("- Discovered new constraint at element $ind_con")
+                    discovered = false
+                end
+            end
+            discovery_status[ind_vec]=discovered
+            #println("- Are all constraints discovered? $discovered")
+            # if discovered == true
+            #     println("- New discovery status for collection number $ind_vec: $discovered")
+            # end
+        end
+    end
+    return discovery_status
+end
