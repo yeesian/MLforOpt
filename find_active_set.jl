@@ -272,9 +272,9 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
 
         # Apparent Power Limit, From and To
         row_ctr += 1
-        const_refs[row_ctr] = @NLconstraint(model, p[f_idx]^2 + q[f_idx]^2 <= branch["rate_a"]^2)
+        const_refs[row_ctr] = @NLconstraint(model, p_fr^2 + q_fr^2 <= branch["rate_a"]^2)
         row_ctr += 1
-        const_refs[row_ctr] = @NLconstraint(model, p[t_idx]^2 + q[t_idx]^2 <= branch["rate_a"]^2)
+        const_refs[row_ctr] = @NLconstraint(model, p_to^2 + q_to^2 <= branch["rate_a"]^2)
     end
 
     for (i,dcline) in ref[:dcline]
