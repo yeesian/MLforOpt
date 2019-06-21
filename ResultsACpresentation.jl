@@ -15,9 +15,7 @@ Row_constraints = Vector{Int}(19)
 Cols_upper_constraints = Vector{Int}(19)
 Cols_lower_constraints = Vector{Int}(19)
 All_Sets = Vector{Int}(19)
-unique_rows = Vector{Int}()
-unique_cols_upper = Vector{Int}()
-unique_cols_lower = Vector{Int}()
+
 
 @showprogress 1 for (k,f) in enumerate([
         "results_AC_allRoD_180825/case3_lmbd",
@@ -45,6 +43,10 @@ unique_cols_lower = Vector{Int}()
          "intermediate_results/pglib_opf_case6468_rte_iteration500" # less than 100 samples
 ])
 
+    unique_rows = Vector{Int}()
+    unique_cols_upper = Vector{Int}()
+    unique_cols_lower = Vector{Int}()
+
     data_file = string(f, ".jld")
     data = JLD.load(data_file)
 
@@ -58,53 +60,47 @@ unique_cols_lower = Vector{Int}()
     RoD_Constraint[k] = data["results"]["RoD_Constraint"]
     All_Sets[k] = length(data["results"]["active_sets"])
 
-    for i=1:length(data["results"]["active_rows"])
-      unique_rows = unique([unique_rows; data["results"]["active_rows"][i]])
-    end
+    unique_rows = unique(vcat(data["results"]["active_rows"]...))
     Row_constraints[k] = length(unique_rows)
 
-    for i=1:length(data["results"]["active_cols_upper"])
-      unique_cols_upper = unique([unique_cols_upper; data["results"]["active_cols_upper"][i]])
-    end
+    unique_cols_upper = unique(vcat(data["results"]["active_cols_upper"]...))
     Cols_upper_constraints[k] = length(unique_cols_upper)
 
-    for i=1:length(data["results"]["active_cols_lower"])
-      unique_cols_lower = unique([unique_cols_lower; data["results"]["active_cols_lower"][i]])
-    end
+    unique_cols_lower = unique(vcat(data["results"]["active_cols_lower"]...))
     Cols_lower_constraints[k] = length(unique_cols_lower)
 
 end
 
 
-data_file = "intermediate_results/pglib_opf_case240_pserc_iteration700.jld"
-
-data = JLD.load(data_file)
-
-active_rows = data["results"]["active_rows"]
-active_cols_upper = data["results"]["active_cols_lower"]
-active_cols_lower = data["results"]["active_cols_upper"]
-
-num_rows = Vector{Int}(length(active_rows))
-num_cols_upper = Vector{Int}(length(active_cols_upper))
-num_cols_lower = Vector{Int}(length(active_cols_lower))
-unique_rows = Vector{Int}()
-unique_cols_upper = Vector{Int}()
-unique_cols_lower = Vector{Int}()
-
-for i=1:length(active_rows)
-  num_rows[i] = length(active_rows[i])
-  unique_rows = unique([unique_rows; active_rows[i]])
-end
-
-for i=1:length(active_cols_upper)
-  num_cols_upper[i] = length(active_cols_upper[i])
-  unique_cols_upper = unique([unique_cols_upper; active_cols_upper[i]])
-end
-
-for i=1:length(active_cols_lower)
-  num_cols_lower[i] = length(active_cols_lower[i])
-  unique_cols_lower = unique([unique_cols_lower; active_cols_lower[i]])
-end
+# data_file = "intermediate_results/pglib_opf_case240_pserc_iteration700.jld"
+#
+# data = JLD.load(data_file)
+#
+# active_rows = data["results"]["active_rows"]
+# active_cols_upper = data["results"]["active_cols_lower"]
+# active_cols_lower = data["results"]["active_cols_upper"]
+#
+# num_rows = Vector{Int}(length(active_rows))
+# num_cols_upper = Vector{Int}(length(active_cols_upper))
+# num_cols_lower = Vector{Int}(length(active_cols_lower))
+# unique_rows = Vector{Int}()
+# unique_cols_upper = Vector{Int}()
+# unique_cols_lower = Vector{Int}()
+#
+# for i=1:length(active_rows)
+#   num_rows[i] = length(active_rows[i])
+#   unique_rows = unique([unique_rows; active_rows[i]])
+# end
+#
+# for i=1:length(active_cols_upper)
+#   num_cols_upper[i] = length(active_cols_upper[i])
+#   unique_cols_upper = unique([unique_cols_upper; active_cols_upper[i]])
+# end
+#
+# for i=1:length(active_cols_lower)
+#   num_cols_lower[i] = length(active_cols_lower[i])
+#   unique_cols_lower = unique([unique_cols_lower; active_cols_lower[i]])
+# end
 
 
 
