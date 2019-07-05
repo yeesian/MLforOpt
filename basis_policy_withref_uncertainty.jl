@@ -192,9 +192,13 @@ function post_ac_opf_active_set_withref_uncertainty(
 
         # Phase Angle Difference Limit
         row_ctr += 1
-        const_refs_phaseangle[row_ctr] = @constraint(model, va_fr - va_to <= branch["angmax"])
+        if row_ctr in active_rows
+            const_refs_phaseangle[row_ctr] = @constraint(model, va_fr - va_to <= branch["angmax"])
+        end
         row_ctr += 1
-        const_refs_phaseangle[row_ctr] = @constraint(model, va_fr - va_to >= branch["angmin"])
+        if row_ctr in active_rows
+            const_refs_phaseangle[row_ctr] = @constraint(model, va_fr - va_to >= branch["angmin"])
+        end
 
         # Apparent Power Limit, From and To
         # differs from post_ac_opf_withref_uncertainty() in find_active_set.jl#274-277 at ebc4c9e
