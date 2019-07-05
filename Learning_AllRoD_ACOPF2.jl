@@ -154,7 +154,8 @@ function post_ac_opf_active_set_withref_uncertainty(
         # @constraintref sapp_fr_ref[1:length(ref[:branch])]
         # @constraintref sapp_to_ref[1:length(ref[:branch])]
         # branch_ctr = 0
-        @constraintref const_refs[1:2*length(ref[:branch])]
+        @constraintref const_refs_powerlimit[1:2*length(ref[:branch])]
+        @constraintref const_refs_phaseangle[1:2*length(ref[:branch])]
         row_ctr = 0
     for (i,branch) in ref[:branch]
         f_idx = (i, branch["f_bus"], branch["t_bus"])
@@ -190,8 +191,10 @@ function post_ac_opf_active_set_withref_uncertainty(
 
 
         # Phase Angle Difference Limit
-        @constraint(model, va_fr - va_to <= branch["angmax"])
-        @constraint(model, va_fr - va_to >= branch["angmin"])
+        row_ctr += 1
+        const_refs_phaseangle[row_ctr] = @constraint(model, va_fr - va_to <= branch["angmax"])
+        row_ctr += 1
+        const_refs_phaseangle[row_ctr] = @constraint(model, va_fr - va_to >= branch["angmin"])
 
         # Apparent Power Limit, From and To
         # differs from post_ac_opf_withref_uncertainty() in find_active_set.jl#274-277 at ebc4c9e
@@ -200,11 +203,11 @@ function post_ac_opf_active_set_withref_uncertainty(
         #   so that it tracks the corresponding row in the original model.
         row_ctr += 1
         if row_ctr in active_rows
-            const_refs[row_ctr] = @NLconstraint(model, p_fr^2 + q_fr^2 <= branch["rate_a"]^2)
+            const_refs_powerlimit[row_ctr] = @NLconstraint(model, p_fr^2 + q_fr^2 <= branch["rate_a"]^2)
         end
         row_ctr += 1
         if row_ctr in active_rows
-            const_refs[row_ctr] = @NLconstraint(model, p_to^2 + q_to^2 <= branch["rate_a"]^2)
+            const_refs_powerlimit[row_ctr] = @NLconstraint(model, p_to^2 + q_to^2 <= branch["rate_a"]^2)
         end
     end
 
@@ -232,7 +235,7 @@ function post_ac_opf_active_set_withref_uncertainty(
         nl_refs = Dict{String,Any}()
         nl_refs["u"] = u
 
-        return model, const_refs, var_refs, nl_refs
+        return model, const_refs_phaseangle, const_refs_powerlimit, var_refs, nl_refs
 end
 
 # ======================================================================
