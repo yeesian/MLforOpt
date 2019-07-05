@@ -198,7 +198,6 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
     # end
 
     for i in keys(ref[:bus])
-        gamma = Dict
         qd = pd = gs = bs = 0.0
         for load in ref[:bus_loads][i]
             pd += ref[:load][load]["pd"]
