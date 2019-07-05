@@ -178,6 +178,10 @@ using rate of discovery of active sets as the stopping criterion (as it is the m
 but also recording rate of discovery for all the other quantities:
 New active sets, new active constraints, new active rows, new acitve columns (upper and lower)
 
+This is the updated version of RunStreamingAlgorithmAC_AllRoD() to use a model
+that handle both uncertainty and active sets jointly. That way, we can run
+experiments on the AC OPF models based on different choices of active sets.
+
 Inputs:\\
 alpha   - maximum unobserved mass \\
 delta   - confidence level \\
@@ -187,7 +191,7 @@ gamma   - constant > 1\\
 Outputs:\\
 """
 
-function RunStreamingAlgorithmAC_AllRoD(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver; maxsamples = 50000, tol = 1e-5, sigma=0.03)
+function RunStreamingAlgorithmAC_AllRoD2(alpha, delta, epsilon, gamma, Minitial, filename, NLsolver; maxsamples = 50000, tol = 1e-5, sigma=0.03)
 
    # Keeping track of infeasible samples
    infeasible_samples = 0
