@@ -7,7 +7,13 @@ function find_active_set(jm, const_refs, var_refs, tol = 1e-5)
 
     all_var_refs = [var_refs["pg"][:];var_refs["qg"][:]]
 
-    row_duals = JuMP.getdual(const_refs)    # find dual of the constraints
+    # in models with active sets, not all the line constraints will be defined.
+    #   therefore, we set the duals of undefined constraints to zero,
+    #   so that they will not be included in the set of active rows
+    row_duals = [ # find dual of the constraints
+        isassigned(const_refs, i) ? JuMP.getdual(const_refs[i]) : 0.0
+        for i in eachindex(const_refs)
+    ]
 
     active_rows = find(abs.(row_duals).>tol)     # non-zero Lagrange multiplier
     active_cols_lower = find(abs.(jm.colVal - jm.colLower).< tol)    # variables that are at lower bound
