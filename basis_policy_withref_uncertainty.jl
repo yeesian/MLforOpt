@@ -1,3 +1,11 @@
+mutable struct ParametricACOPF
+    model::JuMP.Model
+    const_refs_phaseangle::Vector{JuMP.ConstraintRef}
+    const_refs_powerlimit::Vector{JuMP.ConstraintRef}
+    var_refs::Dict{String, Any}
+    nl_refs::Dict{String,Any}
+end
+
 """
 Given a (i) JuMP model, (ii) PowerModels network data, and (iii) active
 set (to be provided by the callee),
@@ -12,12 +20,12 @@ rows so that it behaves like post_ac_opf_withref_uncertainty().
 """
 function post_ac_opf_active_set_withref_uncertainty(
         data::Dict{String,Any},
-        active_set,
+        active_set::Dict{String, Vector{Int}},
         model = Model(),
     )
     active_rows = active_set["active_rows"]
-    active_cols_lower = active_set["active_cols_lower"]
-    active_cols_upper = active_set["active_cols_upper"]
+    active_cols_lower = get(active_set, "active_cols_lower", Int[])
+    active_cols_upper = get(active_set, "active_cols_upper", Int[])
 
     col_ctr = 0
     row_ctr = 0
@@ -239,5 +247,11 @@ function post_ac_opf_active_set_withref_uncertainty(
         nl_refs = Dict{String,Any}()
         nl_refs["u"] = u
 
-        return model, const_refs_phaseangle, const_refs_powerlimit, var_refs, nl_refs
+        return ParametricACOPF(
+            model,
+            const_refs_phaseangle,
+            const_refs_powerlimit,
+            var_refs,
+            nl_refs
+        )
 end
