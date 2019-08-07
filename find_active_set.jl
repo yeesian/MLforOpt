@@ -5,9 +5,13 @@
 
 function find_active_set(jm, const_refs, var_refs, tol = 1e-5)
 
-    all_var_refs = [var_refs["pg"][:];var_refs["qg"][:]]
-
-    row_duals = JuMP.getdual(const_refs)    # find dual of the constraints
+    # in models with active sets, not all the line constraints will be defined.
+    #   therefore, we set the duals of undefined constraints to zero,
+    #   so that they will not be included in the set of active rows
+    row_duals = [ # find dual of the constraints
+        isassigned(const_refs, i) ? JuMP.getdual(const_refs[i]) : 0.0
+        for i in eachindex(const_refs)
+    ]
 
     active_rows = find(abs.(row_duals).>tol)     # non-zero Lagrange multiplier
     active_cols_lower = find(abs.(jm.colVal - jm.colLower).< tol)    # variables that are at lower bound
@@ -22,7 +26,35 @@ function find_active_set(jm, const_refs, var_refs, tol = 1e-5)
     return active_set
 end
 
+function find_binding_set(jm, const_refs, var_refs, tol = 1e-5)
 
+    evaluator = JuMP.NLPEvaluator(jm)
+    MathProgBase.initialize(evaluator, [:Grad])
+    g = zeros(MathProgBase.numconstr(evaluator.m))
+    lb, ub = JuMP.constraintbounds(jm)
+    MathProgBase.eval_g(evaluator, g, JuMP.internalmodel(jm).inner.x)
+    active_rows = Vector{Int}()
+    for i in eachindex(const_refs)
+        # in models with active sets, not all the line constraints are defined
+        if isassigned(const_refs, i)
+            c = const_refs[i].idx
+            if (g[c] < lb[c] + tol || g[c] > ub[c] - tol)
+                push!(active_rows, i)
+            end
+        end
+    end
+
+    active_cols_lower = find(abs.(jm.colVal - jm.colLower).< tol)    # variables that are at lower bound
+    active_cols_upper = find(abs.(jm.colVal - jm.colUpper).< tol)    # variables that are at upper bound
+
+    active_set = Dict{String,Vector{Int}}(
+        "active_rows" => active_rows,
+        "active_cols_lower" => active_cols_lower,
+        "active_cols_upper" => active_cols_upper
+    )
+
+    return active_set
+end
 
 # """
 # Given a JuMP model and a PowerModels network data structure,
@@ -198,7 +230,6 @@ function post_ac_opf_withref_uncertainty(data::Dict{String,Any}, model=Model())
     # end
 
     for i in keys(ref[:bus])
-        gamma = Dict
         qd = pd = gs = bs = 0.0
         for load in ref[:bus_loads][i]
             pd += ref[:load][load]["pd"]
